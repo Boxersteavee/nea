@@ -1,0 +1,7 @@
+astropy
+numpy
+matplotlib
+photutils
+setuptools
+wheel
+twirl
