@@ -10,14 +10,6 @@ import matplotlib.pyplot as plt
 from photutils.aperture import CircularAperture
 from astropy.wcs import WCS
 
-# Imports for Twirl
-from astropy.wcs.utils import proj_plane_pixel_scales
-from twirl import gaia_radecs
-from twirl.geometry import sparsify
-from twirl import compute_wcs
-from astropy.coordinates import SkyCoord
-
-
 def find_stars(file):  # Function for identifying bright spots in the image (stars)
     with fits.open(file) as image:
         data = image[0].data  # Extract the image data into "data"
