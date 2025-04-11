@@ -1,7 +1,3 @@
-# This script is for using the twirl solving method.
-# AstroPy Twirl plate-solves images using the ESA's GAIA online catalogue.
-
-# Imports for find_stars()
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 import twirl
@@ -10,27 +6,32 @@ import matplotlib.pyplot as plt
 from photutils.aperture import CircularAperture
 from astropy.wcs import WCS
 
-def find_stars(file):  # Function for identifying bright spots in the image (stars)
-    with fits.open(file) as image:
-        data = image[0].data  # Extract the image data into "data"
-        header = image[0].header  # Extract the header of the image (which contains WCS data) into "header"
+def find_stars(file): # Function for finding stars
+    with fits.open(file) as image: # Open input file (input.fits)
+        data = image[0].data # Save the image data (picture) in 'data'
+        header = image[0].header # Save the image header (WCS data) in 'header'
         try:
-            true_wcs = WCS(header)
+            true_wcs = WCS(header) # Save WCS data in 'true_wcs' for later.
             print("WCS Data Found! Proceeding.")
         except:
-            true_wcs = None
-            print("No WCS data found. Proceeding.")
+            true_wcs = None # If the image does not have WCS data, proceed without it.
+            print("No WCS data found. Proceeding without.")
 
-    mean, median, std = sigma_clipped_stats(data, sigma=3.0)
-    xy = twirl.find_peaks(data)[0:20]
+    xy = twirl.find_peaks(data)[0:50]
+
+    if xy.shape[1] == 3:
+        xy_positions = [(x, y) for x, y, _ in xy]
+    else:
+        xy_positions = [(x, y) for x, y in xy]
+
+    plt.figure(figsize=(6.4, 3.6), dpi=300) # Set image resolution to 300dpi
 
     if data.ndim == 3:
         plt.imshow(data[0, :, :], vmin=numpy.median(data), vmax=3 * numpy.median(data), cmap="Greys_r")
     else:
         plt.imshow(data, vmin=numpy.median(data), vmax=3 * numpy.median(data), cmap="Greys_r")
 
-    xy_positions = [(x, y) for x, y, _ in xy]
-    _ = CircularAperture(xy_positions, r=10.0).plot(color="y")
+    _ = CircularAperture(xy_positions, r=40.0).plot(color="y")
 
-    print(f"Number of stars identified: {len(xy)}")
+    print(f"Number of stars found: {len(xy)}")
     plt.show()
