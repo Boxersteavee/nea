@@ -1,3 +1,4 @@
 .venv/
 .idea/
 gedcom/*
+.python-version
