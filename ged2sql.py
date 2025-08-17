@@ -1,30 +1,20 @@
 from gedcom.parser import Parser
 from gedcom.element.individual import IndividualElement
 import sqlite3
+import os
 
-def ParseFile(Gedcom_Path):
-    gedcom_parser = Parser()
-    gedcom_parser.parse_file(Gedcom_Path, False)
-    elements = gedcom_parser.get_element_list()
+def ParseFile(gedcom_path):
+    gedcom_parser = Parser() # Initialise parser
+    gedcom_parser.parse_file(gedcom_path, False) # Parse gedcom file given from path.
+    elements = gedcom_parser.get_element_list() # Extract all elements from the file and save them to elements as a list
     return elements
 
-def TestSurnames(elements):
-    for element in elements:
-        # Ensure the element is an IndividualElement
-        if isinstance(element, IndividualElement):
-            # Get the name tuple (first, last)
-            name_data = element.get_name()
-            if name_data:
-                first_name, last_name = name_data
-                print(f"ID: {element.get_pointer()} | First Name: {first_name} | Surname: {last_name}")
-            else:
-                print(f"ID: {element.get_pointer()} | Surname: Not Found")
-
 def CreateDB(db_path, elements):
-    import sqlite3
+    # Create and connect to an SQL DB
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
+    # Create a table called individuals, with fields for information about each individual.
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS individuals (
             id TEXT PRIMARY KEY,
@@ -38,6 +28,7 @@ def CreateDB(db_path, elements):
         )
     ''')
 
+    # Create a table called families, with fields for information about each family.
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS families (
             id TEXT PRIMARY KEY,
@@ -49,9 +40,10 @@ def CreateDB(db_path, elements):
         )
     ''')
 
+    # Iterate through every element in the elements list.
     for element in elements:
+        # if the element is an Individual (person), extract their information
         if isinstance(element, IndividualElement):
-            # Extract first and last name using the same logic as TestSurnames
             name_data = element.get_name()
             if name_data:
                 first_name, last_name = name_data
@@ -63,7 +55,7 @@ def CreateDB(db_path, elements):
             birth_place = ""
             death_date = ""
             death_place = ""
-
+            # If that individual has children, get their IDs and save that
             for child in element.get_child_elements():
                 tag = child.get_tag()
                 if tag == 'SEX':
@@ -82,7 +74,7 @@ def CreateDB(db_path, elements):
                             death_place = d_child.get_value() or ""
                 elif tag == '_MARNM':
                     last_name = child.get_value() or last_name
-
+            # Save the information about this individual to the database into the individuals table.
             cursor.execute('''
                 INSERT OR IGNORE INTO individuals (id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -131,3 +123,13 @@ def CreateDB(db_path, elements):
 
     conn.commit()
     conn.close()
+
+def run(gedcom_path):
+    elements = ParseFile(gedcom_path)
+    db_dir = "database"
+    os.makedirs(db_dir, exist_ok=True)
+    gedcom_name = os.path.basename(gedcom_path)
+    db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
+    print(db_path)
+    CreateDB(db_path, elements)
+    print(f"Database created at {db_path}.")
