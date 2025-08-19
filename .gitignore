@@ -3,3 +3,4 @@
 gedcom/
 .python-version
 database/
+__pycache__/

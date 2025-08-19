@@ -74,7 +74,7 @@ def CreateDB(db_path, elements):
                             death_place = d_child.get_value() or ""
                 elif tag == '_MARNM':
                     last_name = child.get_value() or last_name
-            # Save the information about this individual to the database into the individuals table.
+            # Save the information about this individual to the database into the 'individuals' table.
             cursor.execute('''
                 INSERT OR IGNORE INTO individuals (id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -88,7 +88,7 @@ def CreateDB(db_path, elements):
                 death_date,
                 death_place
             ))
-
+        # if the element is a family, extract their information
         elif element.get_tag() == 'FAM':
             husband_id = ""
             wife_id = ""
@@ -109,6 +109,7 @@ def CreateDB(db_path, elements):
                             marriage_date = marr_child.get_value() or ""
                         elif marr_child.get_tag() == 'PLAC':
                             marriage_place = marr_child.get_value() or ""
+            # Save the information about this family to the database into the 'families' table.
             cursor.execute('''
                 INSERT OR IGNORE INTO families (id, husband_id, wife_id, marriage_date, marriage_place, children)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -124,10 +125,13 @@ def CreateDB(db_path, elements):
     conn.commit()
     conn.close()
 
+# Function to run the above functions.
 def run(gedcom_path):
-    elements = ParseFile(gedcom_path)
+    elements = ParseFile(gedcom_path) # Executes ParseFile and saves the data into 'elements'
+    # Create a directory called "database" if it does not already exist
     db_dir = "database"
     os.makedirs(db_dir, exist_ok=True)
+    # Take the path of the gedcom file, change the path to the database folder, change file extension to .db
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
     print(db_path)
