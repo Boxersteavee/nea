@@ -1,1 +1,3 @@
+werkzeug
 python-gedcom
+flask
