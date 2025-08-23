@@ -2,7 +2,9 @@ import os
 from flask import Flask, flash, request
 from werkzeug.utils import secure_filename
 import ged2sql
+from gedcom import parser
 import time
+import sqlite3
 
 UPLOAD_FOLDER = 'gedcom'
 ALLOWED_EXTENSIONS = {'ged', 'gedcom'}
@@ -32,11 +34,12 @@ def main_page():
                     ged2sql.run(file_path)
                 except sqlite3.DatabaseError:
                     message = 'Database file is corrupted. Please delete/move it and try again.'
-                except sqlite3.OperationalError:
-                    message = 'Database is outdated or locked. Please check file permissions, delete/move it and try again.'
-                except (GedcomParseError, ValueError):
+                    os.remove(UPLOAD_FOLDER + "/" + filename)
+                except (parser.GedcomFormatViolationError, AttributeError):
                     message = 'Gedcom Parse failed. Is this a valid Gedcom file?'
-                message = 'File uploaded successfully and Parsed.'
+                    os.remove(UPLOAD_FOLDER + "/" + filename)
+                else:
+                    message = 'File uploaded successfully and Parsed.'
             else:
                 message = 'Disallowed file type. Please upload a .ged or .gedcom file.'
     return f'''

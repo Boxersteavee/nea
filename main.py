@@ -1,7 +1,7 @@
-import ged2sql
-
+from FlaskServer import app
+debug = True
+#TODO: change debug to False before deployment
 def main():
-    gedcom_path = input("Enter the path to the GEDCOM file: ")
-    ged2sql.run(gedcom_path) # Execute "run" function from ged2sql module with the provided path.
+    app.run(debug=debug)
 
 main()
