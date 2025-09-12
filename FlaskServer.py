@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, request
+from flask import Flask, request, render_template
 from werkzeug.utils import secure_filename
 import ged2sql
 from gedcom import parser
@@ -38,20 +38,19 @@ def main_page():
                 except (parser.GedcomFormatViolationError, AttributeError):
                     message = 'Gedcom Parse failed. Is this a valid Gedcom file?'
                     os.remove(UPLOAD_FOLDER + "/" + filename)
+                except UnicodeDecodeError:
+                    message = 'The file is not a readable format. Please re-generate the file or try a different file.'
+                    print('UnicodeDecodeError: The file is not encoded in UTF-8 format.')
+                    os.remove(UPLOAD_FOLDER + "/" + filename)
+                except Exception as e:
+                    message = f'An unexpected error occurred: {str(e)}'
+                    print(e)
+                    os.remove(UPLOAD_FOLDER + "/" + filename)
                 else:
                     message = 'File uploaded successfully and Parsed.'
             else:
                 message = 'Disallowed file type. Please upload a .ged or .gedcom file.'
-    return f'''
-    <!doctype html>
-    <title>Upload and Parse File</title>
-    <form method=post enctype=multipart/form-data>
-        <input type=file name=file>
-        <p>Select a .ged or .gedcom file</p>
-        <input type=submit value="Upload and Parse">
-    </form>
-    <p>{message}</p>
-    '''
+    return render_template('index.html', message=message)
 
 if __name__ == "__main__":
     app.run(debug=True)
