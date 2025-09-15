@@ -32,15 +32,18 @@ def main_page():
                 time.sleep(0.5)
                 try:
                     ged2sql.run(file_path)
-                except sqlite3.DatabaseError:
-                    message = 'Database file is corrupted. Please delete/move it and try again.'
+                except sqlite3.DatabaseError as e:
+                    message = f'Database file is corrupted. Please delete/move it and try again. {e}'
+                    print(e)
                     os.remove(UPLOAD_FOLDER + "/" + filename)
-                except (parser.GedcomFormatViolationError, AttributeError):
+                except (parser.GedcomFormatViolationError, AttributeError) as e:
                     message = 'Gedcom Parse failed. Is this a valid Gedcom file?'
+                    print(e)
                     os.remove(UPLOAD_FOLDER + "/" + filename)
-                except UnicodeDecodeError:
+                except UnicodeDecodeError as e:
                     message = 'The file is not a readable format. Please re-generate the file or try a different file.'
                     print('UnicodeDecodeError: The file is not encoded in UTF-8 format.')
+                    print(e)
                     os.remove(UPLOAD_FOLDER + "/" + filename)
                 except Exception as e:
                     message = f'An unexpected error occurred: {str(e)}'
