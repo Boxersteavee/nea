@@ -1,7 +1,9 @@
 from gedcom.parser import Parser
 from gedcom.element.individual import IndividualElement
+from gedcom.element.family import FamilyElement
 import sqlite3
 import os
+import re
 
 def parse_file(gedcom_path):
     parser = Parser()
@@ -47,7 +49,7 @@ def create_db(db_path):
 def add_data(db_path, elements):
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
-
+        children = []
         for element in elements:
             if isinstance(element, IndividualElement):
                 id = ""
@@ -98,28 +100,24 @@ def add_data(db_path, elements):
                     occupation
                 ))
 
-            elif element.get_tag() == 'FAM':
+            elif isinstance(element, FamilyElement):
                 id = element.get_pointer()
-                husband_id = ""
-                wife_id = ""
-                marriage_date = ""
-                marriage_place = ""
-                children_ids = []
-
+                try:
+                    wife_id = re.sub(r'^.*?@', '@', str(element.get_wives()[0]))
+                    husband_id = re.sub(r'^.*?@', '@', str(element.get_husbands()[0]))
+                    for child in element.get_children():
+                        child_str = str(child).strip()
+                        children.append(re.sub(r'^.*?@', '@', child_str))
+                except IndexError:
+                    continue
                 for child in element.get_child_elements():
-                    tag = child.get_tag()
-                    if tag == 'HUSB':
-                        husband_id = child.get_value() or ""
-                    elif tag == 'WIFE':
-                        wife_id = child.get_value() or ""
-                    elif tag == 'CHIL':
-                        children_ids.append(child.get_value() or "")
-                    elif tag == 'MARR':
-                        for fam_data in child.get_child_elements():
-                            if fam_data.get_tag() == 'DATE':
-                                marriage_date = fam_data.get_value() or ""
-                            elif fam_data.get_tag() == 'PLAC':
-                                marriage_place = fam_data.get_value() or ""
+                     tag = child.get_tag()
+                     if tag == 'MARR':
+                         for fam_data in child.get_child_elements():
+                             if fam_data.get_tag() == 'DATE':
+                                 marriage_date = fam_data.get_value() or ""
+                             elif fam_data.get_tag() == 'PLAC':
+                                 marriage_place = fam_data.get_value() or ""
 
                 cursor.execute('''
                     INSERT OR IGNORE INTO families (id, husband_id, wife_id, marriage_date, marriage_place, children)
@@ -130,8 +128,10 @@ def add_data(db_path, elements):
                     wife_id,
                     marriage_date,
                     marriage_place,
-                    ','.join(children_ids)
+                    ','.join(children)
                 ))
+
+                children = []
         conn.commit()
         print("Data Successfully Added to Database")
 
@@ -148,3 +148,10 @@ def run(gedcom_path):
         print(f"Database created at {db_path}")
     print(f"Adding data from {gedcom_path}")
     add_data(db_path, elements)
+
+if __name__ == "__main__":
+    db_path = "database/test.db"
+    gedcom_path = "gedcom/36rm6c_290955k3v36ed7wt2f46dc_A.ged"
+    if not os.path.isfile(db_path):
+        create_db(db_path)
+    add_data(db_path, parse_file(gedcom_path))
