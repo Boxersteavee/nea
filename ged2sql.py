@@ -109,7 +109,7 @@ def add_data(db_path, elements):
                         child_str = str(child).strip()
                         children.append(re.sub(r'^.*?@', '@', child_str))
                 except IndexError:
-                    continue
+                    pass
                 for child in element.get_child_elements():
                      tag = child.get_tag()
                      if tag == 'MARR':
