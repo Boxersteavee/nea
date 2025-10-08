@@ -137,7 +137,7 @@ def add_data(db_path, elements):
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)
-    db_dir = "database"
+    db_dir = "user_data/sql"
     os.makedirs(db_dir, exist_ok=True)
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
@@ -148,10 +148,3 @@ def run(gedcom_path):
         print(f"Database created at {db_path}")
     print(f"Adding data from {gedcom_path}")
     add_data(db_path, elements)
-
-if __name__ == "__main__":
-    db_path = "database/test.db"
-    gedcom_path = "gedcom/36rm6c_290955k3v36ed7wt2f46dc_A.ged"
-    if not os.path.isfile(db_path):
-        create_db(db_path)
-    add_data(db_path, parse_file(gedcom_path))
