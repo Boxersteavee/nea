@@ -4,6 +4,7 @@ from gedcom.element.family import FamilyElement
 import sqlite3
 import os
 import re
+from database import Database
 
 def parse_file(gedcom_path):
     parser = Parser()
@@ -11,48 +12,12 @@ def parse_file(gedcom_path):
     elements = parser.get_element_list()
     return elements
 
-# define CreateDB with db_path and elements as inputs
-def create_db(db_path):
-    try:
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS individuals (
-                    id TEXT PRIMARY KEY,
-                    first_name TEXT,
-                    last_name TEXT,
-                    sex TEXT,
-                    birth_date TEXT,
-                    birth_place TEXT,
-                    death_date TEXT,
-                    death_place TEXT,
-                    occupation TEXT
-                )
-            ''')
-
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS families (
-                    id TEXT PRIMARY KEY,
-                    husband_id TEXT,
-                    wife_id TEXT,
-                    marriage_date TEXT,
-                    marriage_place TEXT,
-                    children TEXT
-                )
-            ''')
-            conn.commit()
-            print("Database and Tables successfully Created.")
-    except sqlite3.Error as e:
-        print(f"An SQL error occurred: {e}")
-
-def add_data(db_path, elements):
+def add_data(db_path, elements, db):
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         children = []
         for element in elements:
             if isinstance(element, IndividualElement):
-                id = ""
                 sex = ""
                 first_name = ""
                 last_name = ""
@@ -84,21 +49,7 @@ def add_data(db_path, elements):
                 death_place = element.get_death_place()
                 occupation = element.get_occupation()
 
-                cursor.execute('''
-                    INSERT OR REPLACE INTO individuals (
-                        id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                    id,
-                    first_name,
-                    last_name,
-                    sex,
-                    birth_date,
-                    birth_place,
-                    death_date,
-                    death_place,
-                    occupation
-                ))
+                db.add_person_data(id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
 
             elif isinstance(element, FamilyElement):
                 id = element.get_pointer()
@@ -119,17 +70,7 @@ def add_data(db_path, elements):
                              elif fam_data.get_tag() == 'PLAC':
                                  marriage_place = fam_data.get_value() or ""
 
-                cursor.execute('''
-                    INSERT OR IGNORE INTO families (id, husband_id, wife_id, marriage_date, marriage_place, children)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                ''', (
-                    id,
-                    husband_id,
-                    wife_id,
-                    marriage_date,
-                    marriage_place,
-                    ','.join(children)
-                ))
+                db.add_family_data(id, husband_id, wife_id, marriage_date, marriage_place, children)
 
                 children = []
         conn.commit()
@@ -142,9 +83,8 @@ def run(gedcom_path):
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
     print(db_path)
-    if not os.path.isfile(db_path):
-        print(f"Database does not exist. Creating Database at {db_path}")
-        create_db(db_path)
-        print(f"Database created at {db_path}")
+    db = Database(db_path)
+    db.create_fam_db()
     print(f"Adding data from {gedcom_path}")
-    add_data(db_path, elements)
+    add_data(db_path, elements, db)
+    db.close()
