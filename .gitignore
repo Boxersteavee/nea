@@ -1,6 +1,5 @@
 .venv/
 .idea/
-gedcom/
 .python-version
-database/
 __pycache__/
+user_data/
