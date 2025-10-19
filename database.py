@@ -74,5 +74,46 @@ class Database:
                ','.join(children)
            ))
 
+    def create_user_db(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT,
+                email TEXT,
+                pass_hash TEXT,
+                salt TEXT
+            )  
+        ''')
+        self.db_conn.commit()
+
+    def new_user(self, username, email, pass_hash, salt):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        INSERT OR IGNORE INTO users (
+            username, email, pass_hash, salt)
+        VALUES (?, ?, ?, ?)
+        ''',(
+            username,
+            email,
+            pass_hash,
+            salt
+        ))
+        self.db_conn.commit()
+
+    def verify_user(self, username):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            SELECT pass_hash, salt
+            FROM users
+            WHERE username = ?
+        ''', (username,))
+        result = cursor.fetchone()
+
+        if result:
+            return result
+        else:
+            return(None, None)
+
+
     def close(self):
         self.db_conn.close()
