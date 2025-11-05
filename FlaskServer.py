@@ -14,8 +14,13 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
 @app.route('/upload', methods=['GET', 'POST'])
-def main_page():
+def upload():
     message = ''
     if request.method == 'POST':
         if 'file' not in request.files:
