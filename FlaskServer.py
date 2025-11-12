@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
 import ged2sql
 from gedcom import parser
@@ -14,10 +14,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-
+@app.route('/')
+def home():
+    return redirect(url_for('upload'))
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    print("Hello World!")
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():

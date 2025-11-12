@@ -12,9 +12,14 @@ def parse_file(gedcom_path):
     elements = parser.get_element_list()
     return elements
 
+def normalise_id(id):
+    if id is None:
+        return None
+    s = str(id).strip()
+    nid = s.strip('@')
+    return nid if nid != "" else None
+
 def add_data(db_path, elements, db):
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
         children = []
         for element in elements:
             if isinstance(element, IndividualElement):
@@ -27,7 +32,7 @@ def add_data(db_path, elements, db):
                 death_place = ""
                 occupation = ""
 
-                id = element.get_pointer()
+                id = normalise_id(element.get_pointer())
 
                 # Get Sex if available, set it to Male of Female
                 if element.get_gender() == "M":
@@ -51,11 +56,18 @@ def add_data(db_path, elements, db):
 
                 db.add_person_data(id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
 
-            elif isinstance(element, FamilyElement):
-                id = element.get_pointer()
+        for element in elements:
+            if isinstance(element, FamilyElement):
+                id = normalise_id(element.get_pointer())
+                mother_id = None
+                father_id = None
+                marriage_data = ""
+                marriage_place = ""
+                children = []
+
                 try:
-                    wife_id = re.sub(r'^.*?@', '@', str(element.get_wives()[0]))
-                    husband_id = re.sub(r'^.*?@', '@', str(element.get_husbands()[0]))
+                    mother_id = re.sub(r'^.*?@', '@', str(element.get_wives()[0]))
+                    father_id = re.sub(r'^.*?@', '@', str(element.get_husbands()[0]))
                     for child in element.get_children():
                         child_str = str(child).strip()
                         children.append(re.sub(r'^.*?@', '@', child_str))
@@ -70,10 +82,25 @@ def add_data(db_path, elements, db):
                              elif fam_data.get_tag() == 'PLAC':
                                  marriage_place = fam_data.get_value() or ""
 
-                db.add_family_data(id, husband_id, wife_id, marriage_date, marriage_place, children)
+                if father_id == "" or father_id is None:
+                    father_id = None
+                if mother_id == "" or mother_id is None:
+                    mother_id = None
+
+                # Check if there are children in that family, if not then do not add the empty string.
+                children_list = []
+                child_list = []
+                for cid in children:
+                    if cid:
+                        child_list.append(cid)
+                children = child_list
+
+                mother_id = normalise_id(mother_id)
+                father_id = normalise_id(father_id)
+
+                db.add_family_data(id, father_id, mother_id, marriage_date, marriage_place, children)
 
                 children = []
-        conn.commit()
         print("Data Successfully Added to Database")
 
 def run(gedcom_path):
