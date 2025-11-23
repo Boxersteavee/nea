@@ -11,7 +11,7 @@ class Database:
         try:
             self.db_conn = sqlite3.connect(db_path)
             self.db_conn.execute("PRAGMA foreign_keys = ON")
-            self.db_conn.set_trace_callback(lambda s: print("SQL:", s)) # DEBUG: Print all SQL messages.
+            #self.db_conn.set_trace_callback(lambda s: print("SQL:", s)) # DEBUG: Print all SQL messages.
         except sqlite3.Error as e:
             print(f"SQL Error Occurred: {e}")
 
@@ -49,82 +49,104 @@ class Database:
            )    
            ''')
         # Create parent_insert_data trigger
-        cursor.executescript('''
-            CREATE TRIGGER IF NOT EXISTS parent_insert_data
-            AFTER INSERT ON families
-            BEGIN
-                WITH RECURSIVE split(token, rest) AS (
-                    SELECT '', COALESCE(NEW.children, '') || ','
-                    UNION ALL
-                    SELECT substr(rest, 1, instr(rest, ',') -1),
-                           substr(rest, instr(rest, ',') + 1)
-                    FROM split
-                    WHERE rest <> ''
-                )
-                UPDATE individuals
-                SET father_id = NEW.father_id,
-                    mother_id = NEW.mother_id
-                WHERE id IN (SELECT trim(token) FROM split WHERE token <> '');
-            END;
+        try:
+            cursor.execute('''
+                CREATE TRIGGER IF NOT EXISTS parent_insert_data
+                AFTER INSERT ON families
+                BEGIN
+                    UPDATE individuals
+                    SET father_id = NEW.father_id,
+                        mother_id = NEW.mother_id
+                    WHERE id IN (
+                        WITH RECURSIVE split(token, rest) AS (
+                            SELECT '', COALESCE(NEW.children, '') || ','
+                            UNION ALL
+                            SELECT substr(rest, 1, instr(rest, ',') - 1),
+                                   substr(rest, instr(rest, ',') + 1)
+                            FROM split
+                            WHERE rest <> ''
+                        )
+                        SELECT trim(token) FROM split WHERE token <> ''
+                    );
+                END;
             ''')
-
-        cursor.executescript('''
-            CREATE TRIGGER IF NOT EXISTS parent_update_data
-            AFTER UPDATE OF father_id, mother_id, children ON families
-            BEGIN
-                WITH RECURSIVE split_new(token, rest) AS (
-                    SELECT '', COALESCE(NEW.children, '') || ','
-                    UNION ALL
-                    SELECT substr(rest, 1, instr(rest, ',') - 1),
-                           substr(rest, instr(rest, ',') + 1)
-                    FROM split_new
-                    WHERE rest <> ''
-                ), split_old(token, rest) AS (
-                    SELECT '', COALESCE(OLD.children, '') || ','
-                    UNION ALL
-                    SELECT substr(rest, 1, instr(rest, ',') - 1),
-                           substr(rest, instr(rest, ',') + 1)
-                    FROM split_old
-                    WHERE rest <> ''
-                )
-                
-               UPDATE individuals
-               SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
-                   mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
-               WHERE id IN (SELECT trim(token) FROM split_old WHERE token <> '');
-    
-               UPDATE individuals
-               SET father_id = NEW.father_id,
-                   mother_id = NEW.mother_id
-               WHERE id IN (SELECT trim(token) FROM split_new WHERE token <> '');
-            END;
+        except sqlite3.DatabaseError as e:
+            print(f"failed on insert_data: {e}")
+            raise
+        # Create parent_update_data
+        try:
+            cursor.execute('''
+                CREATE TRIGGER IF NOT EXISTS parent_update_data
+                AFTER UPDATE OF father_id, mother_id, children ON families
+                BEGIN
+                    -- Reset old parent relationships
+                    UPDATE individuals
+                    SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
+                        mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
+                    WHERE id IN (
+                        WITH RECURSIVE split_old(token, rest) AS (
+                            SELECT '', COALESCE(OLD.children, '') || ','
+                            UNION ALL
+                            SELECT substr(rest, 1, instr(rest, ',') - 1),
+                                   substr(rest, instr(rest, ',') + 1)
+                            FROM split_old
+                            WHERE rest <> ''
+                        )
+                        SELECT trim(token) FROM split_old WHERE token <> ''
+                    );
+        
+                    -- Set new parent relationships
+                    UPDATE individuals
+                    SET father_id = NEW.father_id,
+                        mother_id = NEW.mother_id
+                    WHERE id IN (
+                        WITH RECURSIVE split_new(token, rest) AS (
+                            SELECT '', COALESCE(NEW.children, '') || ','
+                            UNION ALL
+                            SELECT substr(rest, 1, instr(rest, ',') - 1),
+                                   substr(rest, instr(rest, ',') + 1)
+                            FROM split_new
+                            WHERE rest <> ''
+                        )
+                        SELECT trim(token) FROM split_new WHERE token <> ''
+                    );
+                END;
             ''')
-        cursor.executescript('''
-            CREATE TRIGGER IF NOT EXISTS parent_delete_data
-            AFTER DELETE ON families
-            BEGIN
-                WITH RECURSIVE split(token, rest) AS (
-                    SELECT '', COALESCE(OLD.children, '') || ','
-                    UNION ALL
-                    SELECT substr(rest, 1, instr(rest, ',') - 1),
-                           substr(rest, instr(rest, ',') + 1)
-                    FROM split
-                    WHERE rest <> ''
-                )
-                UPDATE individuals
-                SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
-                    mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
-                WHERE id IN (SELECT trim(token) FROM split WHERE token <> '');
-            END;
+        except sqlite3.DatabaseError as e:
+            print(f"Failed on update_data: {e}")
+            raise
+        try:
+            cursor.execute('''
+                CREATE TRIGGER IF NOT EXISTS parent_delete_data
+                AFTER DELETE ON families
+                BEGIN
+                    UPDATE individuals
+                    SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
+                        mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
+                    WHERE id IN (
+                        WITH RECURSIVE split(token, rest) AS (
+                            SELECT '', COALESCE(OLD.children, '') || ','
+                            UNION ALL
+                            SELECT substr(rest, 1, instr(rest, ',') - 1),
+                                   substr(rest, instr(rest, ',') + 1)
+                            FROM split
+                            WHERE rest <> ''
+                        )
+                        SELECT trim(token) FROM split WHERE token <> ''
+                    );
+                END;
             ''')
+        except sqlite3.DatabaseError as e:
+            print(f"Failed on delete_data: {e}")
+            raise
         self.db_conn.commit()
 
     def add_person_data(self, id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation):
         cursor = self.db_conn.cursor()
         cursor.execute('''
-            INSERT OR REPLACE INTO individuals (
-                id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO individuals (
+                id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation, mother_id, father_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
             ''', (
             id,
             first_name,
@@ -141,6 +163,7 @@ class Database:
     def add_family_data(self, id, father_id, mother_id, marriage_date, marriage_place, children):
         cursor = self.db_conn.cursor()
         children_str = ','.join(children) if children else ''
+        print(f"Inserting family: {id}, father={father_id}, mother={mother_id}, children={children_str}")
         cursor.execute('''
             INSERT OR IGNORE INTO families (
                 id, father_id, mother_id, marriage_date, marriage_place, children)
@@ -195,6 +218,28 @@ class Database:
         else:
             return(None, None)
 
+    def backfill_parents(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+           UPDATE individuals
+           SET father_id = (
+                SELECT f.father_id
+                FROM families f
+                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
+                LIMIT 1
+            ),
+            mother_id = (
+                SELECT f.mother_id
+                FROM families f
+                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
+                LIMIT 1
+            )
+            WHERE EXISTS (
+                SELECT 1 FROM families f
+                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
+            );
+           ''')
+        self.db_conn.commit()
 
     def close(self):
         self.db_conn.close()

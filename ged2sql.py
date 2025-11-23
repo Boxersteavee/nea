@@ -20,18 +20,8 @@ def normalise_id(id):
     return nid if nid != "" else None
 
 def add_data(db_path, elements, db):
-        children = []
         for element in elements:
             if isinstance(element, IndividualElement):
-                sex = ""
-                first_name = ""
-                last_name = ""
-                birth_date = ""
-                birth_place = ""
-                death_date = ""
-                death_place = ""
-                occupation = ""
-
                 id = normalise_id(element.get_pointer())
 
                 # Get Sex if available, set it to Male of Female
@@ -43,6 +33,7 @@ def add_data(db_path, elements, db):
                     sex = ""
 
                 name_data = element.get_name()
+
                 if name_data:
                     first_name, last_name = name_data
                 else:
@@ -61,18 +52,23 @@ def add_data(db_path, elements, db):
                 id = normalise_id(element.get_pointer())
                 mother_id = None
                 father_id = None
-                marriage_data = ""
+                marriage_date = ""
                 marriage_place = ""
                 children = []
 
                 try:
                     mother_id = re.sub(r'^.*?@', '@', str(element.get_wives()[0]))
                     father_id = re.sub(r'^.*?@', '@', str(element.get_husbands()[0]))
+                    children = []
                     for child in element.get_children():
                         child_str = str(child).strip()
-                        children.append(re.sub(r'^.*?@', '@', child_str))
+                        normalized_child_id = re.sub(r'^.*?@', '@', child_str)
+                        normalized_child_id = normalise_id(normalized_child_id)
+                        if normalized_child_id:
+                            children.append(normalized_child_id)
                 except IndexError:
                     pass
+
                 for child in element.get_child_elements():
                      tag = child.get_tag()
                      if tag == 'MARR':
@@ -86,14 +82,6 @@ def add_data(db_path, elements, db):
                     father_id = None
                 if mother_id == "" or mother_id is None:
                     mother_id = None
-
-                # Check if there are children in that family, if not then do not add the empty string.
-                children_list = []
-                child_list = []
-                for cid in children:
-                    if cid:
-                        child_list.append(cid)
-                children = child_list
 
                 mother_id = normalise_id(mother_id)
                 father_id = normalise_id(father_id)
@@ -114,4 +102,6 @@ def run(gedcom_path):
     db.create_fam_db()
     print(f"Adding data from {gedcom_path}")
     add_data(db_path, elements, db)
+    db.backfill_parents()
     db.close()
+
