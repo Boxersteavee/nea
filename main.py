@@ -1,5 +1,8 @@
-from FlaskServer import app
-def main():
-    app.run()
+import uvicorn
+from api import api
 
-main()
+def main():
+    uvicorn.run("api:api", host="localhost", port=8085, reload=True)
+
+if __name__ == "__main__":
+    main()

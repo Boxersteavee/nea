@@ -17,10 +17,10 @@ def verify_user(username, password):
         given_pass = plctx.hash(password, salt=salt)
         if given_pass == pass_hash:
             print("Password Correct")
-            # allow access
+            # return with token
         else:
             print("Password Incorrect")
-            # make them retry
+            # return 403
     else:
         print("Username does not exist")
-        # make them retry
+        # return 403
