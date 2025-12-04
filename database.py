@@ -163,7 +163,7 @@ class Database:
     def add_family_data(self, id, father_id, mother_id, marriage_date, marriage_place, children):
         cursor = self.db_conn.cursor()
         children_str = ','.join(children) if children else ''
-        print(f"Inserting family: {id}, father={father_id}, mother={mother_id}, children={children_str}")
+        # print(f"Inserting family: {id}, father={father_id}, mother={mother_id}, children={children_str}")
         cursor.execute('''
             INSERT OR IGNORE INTO families (
                 id, father_id, mother_id, marriage_date, marriage_place, children)

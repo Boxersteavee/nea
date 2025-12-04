@@ -19,12 +19,12 @@ def normalise_id(id):
     nid = s.strip('@')
     return nid if nid != "" else None
 
-def add_data(db_path, elements, db):
+def add_data(elements, db):
         for element in elements:
             if isinstance(element, IndividualElement):
                 id = normalise_id(element.get_pointer())
 
-                # Get Sex if available, set it to Male of Female
+                # Get gender if available, set it to Male of Female
                 if element.get_gender() == "M":
                     sex = "Male"
                 elif element.get_gender() == "F":
@@ -89,7 +89,7 @@ def add_data(db_path, elements, db):
                 db.add_family_data(id, father_id, mother_id, marriage_date, marriage_place, children)
 
                 children = []
-        print("Data Successfully Added to Database")
+        # print("Data Successfully Added to Database")
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)
@@ -97,11 +97,11 @@ def run(gedcom_path):
     os.makedirs(db_dir, exist_ok=True)
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
-    print(db_path)
+    # print(db_path)
     db = Database(db_path)
     db.create_fam_db()
-    print(f"Adding data from {gedcom_path}")
-    add_data(db_path, elements, db)
+    # print(f"Adding data from {gedcom_path}")
+    add_data(elements, db)
     db.backfill_parents()
     db.close()
 
