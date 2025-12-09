@@ -4,8 +4,10 @@ from gedcom import parser
 import shutil
 import sqlite3
 import os
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from config import get_cfg
+import auth
+from pydantic import EmailStr
 
 api = FastAPI()
 cfg = get_cfg()
@@ -16,14 +18,19 @@ UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
 @api.get("/")
 async def root():
     user_data_dir = cfg['user_data_dir']
-    return {"message": "Hello World"}
+    return 'Hello World! Visit /docs to see documentation on available requests.'
 
 # Take upload of gedcom file, process it, return 200 when complete.
 # If the file is not provided, return 400.
 # If there's another error, return 500 and provide the error.
 
 @api.post("/upload/gedcom")
-async def gedcom_upload(file: UploadFile = File(...)):
+async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
+    if not token:
+        raise HTTPException(status_code=401, detail="You must provide a valid token in order to upload files")
+    username = auth.validate_session(token)
+    if username == None:
+        raise HTTPException(status_code=403, detail="You are not authorised to complete this request.")
     if not file.filename:
         raise HTTPException(status_code=400, detail="File required")
     extension = os.path.splitext(file.filename)[1].lower()
@@ -65,3 +72,23 @@ async def gedcom_upload(file: UploadFile = File(...)):
         os.remove(UPLOAD_FOLDER + "/" + filename)
         raise HTTPException(status_code=500, detail=message)
     return {"status": "ok"}
+
+@api.post('/login/create')
+async def create_user(username: str = Form(...), email: EmailStr = Form(...), password: str = Form(...)):
+        code = auth.create_user(username, email, password)
+        if code == 200:
+            return {"status": f"User {username} created successfully."}
+        elif code == 403:
+            raise HTTPException(status_code=403, detail="Username already exists.")
+        else:
+            raise HTTPException(status_code=500, detail="Error creating user")
+
+@api.post('/login/verify')
+async def verify_user(username: str = Form(...), password: str = Form(...)):
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="You must provide a username and password")
+    result = auth.verify_user(username, password)
+    if result == 401:
+        raise HTTPException(status_code=403, detail= "Username or Password incorrect.")
+    token, expires_at = auth.create_session(username)
+    return {"token": token, "expires": expires_at}

@@ -9,6 +9,7 @@ def setup():
     default['gedcom_dir'] = '${user_data_dir}/gedcom'
     default['db_dir'] = '${user_data_dir}/sql'
     default['api_port'] = '8085'
+    default['session_ttl'] = '2'
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
 

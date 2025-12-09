@@ -1,26 +1,52 @@
-from passlib.context import CryptContext
-from database import Database
-import os
+import sqlite3
 
-db = Database('user_data/auth.db')
+from passlib.hash import argon2
+from database import Database
+from config import get_cfg
+from datetime import datetime, timedelta
+import secrets
+
+cfg = get_cfg()
+
+db = Database(f'{cfg['user_data_dir']}/auth.db')
+session_ttl = timedelta(hours=(float(cfg['session_ttl'])))
 db.create_user_db()
-plctx = CryptContext(schemes=["argon2"], deprecated="auto")
+db.create_sessions_table()
 
 def create_user(username, email, password):
-    salt = os.urandom(16)
-    pass_hash = plctx.hash(password, salt=salt)
-    db.new_user(username, email, pass_hash, salt)
+    pass_hash = argon2.hash(password)
+    try:
+        db.new_user(username, email, pass_hash)
+    except sqlite3.IntegrityError:
+        return 403
+    else:
+        return 200
 
 def verify_user(username, password):
-    pass_hash, salt = db.verify_user(username)
-    if pass_hash and salt:
-        given_pass = plctx.hash(password, salt=salt)
-        if given_pass == pass_hash:
-            print("Password Correct")
-            # return with token
+    pass_hash = db.verify_user(username)
+    if pass_hash:
+        if argon2.verify(password, pass_hash):
+            return 200
         else:
-            print("Password Incorrect")
-            # return 403
+            return 401
     else:
-        print("Username does not exist")
-        # return 403
+        return 401
+
+def validate_session(token):
+    row = db.get_session(token)
+    if not row:
+        return None
+    token, username, expires_at = row
+    if datetime.fromisoformat(expires_at) < datetime.utcnow():
+        db.delete_session(token)
+        return None
+    return username
+
+def revoke_session(token):
+    db.delete_session(token)
+
+def create_session(username):
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + session_ttl
+    db.save_session(username, token, expires_at)
+    return token, expires_at

@@ -178,46 +178,6 @@ class Database:
            ))
         self.db_conn.commit()
 
-    def create_user_db(self):
-        cursor = self.db_conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                username TEXT,
-                email TEXT,
-                pass_hash TEXT,
-                salt TEXT
-            )  
-        ''')
-        self.db_conn.commit()
-
-    def new_user(self, username, email, pass_hash, salt):
-        cursor = self.db_conn.cursor()
-        cursor.execute('''
-        INSERT OR IGNORE INTO users (
-            username, email, pass_hash, salt)
-        VALUES (?, ?, ?, ?)
-        ''',(
-            username,
-            email,
-            pass_hash,
-            salt
-        ))
-        self.db_conn.commit()
-
-    def verify_user(self, username):
-        cursor = self.db_conn.cursor()
-        cursor.execute('''
-            SELECT pass_hash, salt
-            FROM users
-            WHERE username = ?
-        ''', (username,))
-        result = cursor.fetchone()
-
-        if result:
-            return result
-        else:
-            return(None, None)
-
     def backfill_parents(self):
         cursor = self.db_conn.cursor()
         cursor.execute('''
@@ -240,6 +200,89 @@ class Database:
             );
            ''')
         self.db_conn.commit()
+# AUTH DATABASE FUNCTIONS
+    def create_user_db(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                email TEXT,
+                pass_hash TEXT
+            )  
+        ''')
+        self.db_conn.commit()
+
+    def new_user(self, username, email, pass_hash):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        
+        INSERT INTO users (
+            username, email, pass_hash)
+        VALUES (?, ?, ?)
+        ''',(
+            username,
+            email,
+            pass_hash
+        ))
+        self.db_conn.commit()
+
+    def verify_user(self, username):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            SELECT pass_hash
+            FROM users
+            WHERE username = ?
+        ''', (username,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return None
+    # SESSIONS MANAGEMENT
+    def create_sessions_table(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            expires_at TEXT,
+            FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+            )
+        ''')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username)')
+        self.db_conn.commit()
+
+    def save_session(self, username, token, expires_at):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        INSERT OR REPLACE INTO sessions (
+            token, username, expires_at)
+        VALUES (?, ?, ?)
+        ''',(
+            token,
+            username,
+            expires_at
+        ))
+        self.db_conn.commit()
+
+    def get_session(self, token):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        SELECT token, username, expires_at
+        FROM sessions
+        WHERE token = ?
+        ''', (token,))
+        return cursor.fetchone()
+
+    def delete_session(self, token):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        DELETE FROM sessions
+        WHERE token = ?
+        ''', (token,))
+        self.db_conn.commit()
 
     def close(self):
+        self.db_conn.commit()
         self.db_conn.close()

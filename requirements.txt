@@ -1,6 +1,6 @@
-werkzeug
 git+https://github.com/Mark-Wing/python-gedcom.git
 flask
 passlib
 fastapi
 uvicorn
+argon2-cffi
