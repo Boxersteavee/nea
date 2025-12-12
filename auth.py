@@ -13,6 +13,7 @@ session_ttl = timedelta(hours=(float(cfg['session_ttl'])))
 db.create_user_db()
 db.create_sessions_table()
 
+##### USER MANAGEMENT #####
 def create_user(username, email, password):
     pass_hash = argon2.hash(password)
     try:
@@ -32,6 +33,14 @@ def verify_user(username, password):
     else:
         return 401
 
+def delete_user(token):
+    username = validate_session(token)
+    if not username:
+        return 401
+    db.delete_user(username)
+    return 200
+
+##### SESSION MANAGEMENT #####
 def validate_session(token):
     row = db.get_session(token)
     if not row:

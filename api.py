@@ -24,6 +24,7 @@ async def root():
 # If the file is not provided, return 400.
 # If there's another error, return 500 and provide the error.
 
+##### GEDCOM MANAGEMENT #####
 @api.post("/upload/gedcom")
 async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
     if not token:
@@ -73,13 +74,14 @@ async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
         raise HTTPException(status_code=500, detail=message)
     return {"status": "ok"}
 
+##### USER MANAGEMENT #####
 @api.post('/login/create')
 async def create_user(username: str = Form(...), email: EmailStr = Form(...), password: str = Form(...)):
-        code = auth.create_user(username, email, password)
-        if code == 200:
-            return {"status": f"User {username} created successfully."}
-        elif code == 403:
-            raise HTTPException(status_code=403, detail="Username already exists.")
+        result = auth.create_user(username, email, password)
+        if result == 200:
+            return {"status": f"User {username} created successfully"}
+        elif result == 403:
+            raise HTTPException(status_code=403, detail="Username already exists")
         else:
             raise HTTPException(status_code=500, detail="Error creating user")
 
@@ -89,6 +91,15 @@ async def verify_user(username: str = Form(...), password: str = Form(...)):
         raise HTTPException(status_code=400, detail="You must provide a username and password")
     result = auth.verify_user(username, password)
     if result == 401:
-        raise HTTPException(status_code=403, detail= "Username or Password incorrect.")
+        raise HTTPException(status_code=403, detail= "Username or Password incorrect")
     token, expires_at = auth.create_session(username)
     return {"token": token, "expires": expires_at}
+
+@api.post('/login/delete')
+async def delete_user(token: str = Form(...)):
+    if not token:
+        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+    result = auth.delete_user(token)
+    if result == 401:
+        raise HTTPException(status_code=401, detail="Invalid Session Token")
+    return {"status": "ok"}

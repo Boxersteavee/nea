@@ -226,6 +226,16 @@ class Database:
         ))
         self.db_conn.commit()
 
+    def delete_user(self, username):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            DELETE FROM users
+                WHERE username = ?
+        ''',(
+            username,
+        ))
+        self.db_conn.commit()
+
     def verify_user(self, username):
         cursor = self.db_conn.cursor()
         cursor.execute('''
