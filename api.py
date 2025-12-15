@@ -103,3 +103,27 @@ async def delete_user(token: str = Form(...)):
     if result == 401:
         raise HTTPException(status_code=401, detail="Invalid Session Token")
     return {"status": "ok"}
+
+@api.get('/tree/test')
+async def test_data():
+    data = '''
+    [
+        {
+            "id": 1,
+            "fatherId": 2,
+            "motherId": 3,
+            "spouseIds": [4],
+            "siblingIds": [5, 6],
+            "childIds": [7],
+            "name": "Me",
+            "sexOrGender": "female"
+        },
+        {"id": 2, "name": "Father", "childIds": [1, 5, 6], "sexOrGender": "male"},
+        {"id": 3, "name": "Mother", "childIds": [1, 5, 6], "sexOrGender": "female"},
+        {"id": 4, "spouseIds": [1], "childIds": [7], "name": "Spouse", "sexOrGender": "male"},
+        {"id": 5, "name": "Sibling 1", "sexOrGender": "male", "fatherId": 2, "motherId": 3},
+        {"id": 6, "name": "Sibling 2", "sexOrGender": "female", "fatherId": 2, "motherId": 3},
+        {"id": 7, "name": "Child", "sexOrGender": "female", "motherId": 1, "fatherId": 4}
+    ]
+    '''
+    return data
