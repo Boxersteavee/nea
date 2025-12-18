@@ -3,23 +3,61 @@ import background from '../assets/background.svg';
 const response = await fetch('http://localhost:8085/tree/test');
 const data = await response.json();
 ---
-<script src="https://cdn.balkan.app/familytree2.js" defer></script>
 
 <div id="container">
-	<img id="background" src={background.src} alt="" fetchpriority="high" />
-	<main>
-		<section id="hero">
-				<div id="tree"></div>
-		</section>
-	</main>
+ <img id="background" src={background.src} alt="" fetchpriority="high" />
+ <main>
+  <section id="hero">
+    <div id="tree"></div>
+  </section>
+ </main>
 </div>
 
-<script define:vars={{ data }} type="module">
-	window.addEventListener('load', () => {
-		const tree = new FamilyTree(document.getElementById("tree"), {
-			nodes: data
-		});
-	});
+<script define:vars={{ data }}>
+ console.log('Script executing, data:', data);
+
+ function loadLibraryAndInit() {
+  console.log('loadLibraryAndInit called');
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.balkan.app/familytree.css';
+  document.head.appendChild(link);
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.balkan.app/familytree.js';
+  script.onerror = () => console.error('Failed to load FamilyTree library');
+  script.onload = () => {
+   setTimeout(() => {
+    const container = document.getElementById("tree");
+    console.log('Container:', container);
+    console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+    console.log('Data being passed:', data);
+
+    const tree = new FamilyTree(container, {
+     mode: 'light',
+     roots: [1],
+     nodes: data,
+     template: 'john',
+     nodeBinding: {
+      field_0: 'name',
+      img_0: 'img'
+     }
+    });
+
+    console.log('Tree object:', tree);
+    console.log('Tree nodes:', tree.config.nodes);
+    console.log('Tree initialized successfully');
+   }, 100);
+  };
+  document.head.appendChild(script);
+ }
+
+ if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadLibraryAndInit);
+ } else {
+  loadLibraryAndInit();
+ }
 </script>
 
 <style>
@@ -27,6 +65,7 @@ const data = await response.json();
 	#tree {
 		width: 100%;
 		height: 600px;
+		min-height: 600px;
 	}
 
 	#background {
@@ -46,6 +85,7 @@ const data = await response.json();
 
 	main {
 		height: 100%;
+		width: 100%;
 		display: flex;
 		justify-content: center;
 	}
@@ -56,6 +96,8 @@ const data = await response.json();
 		flex-direction: column;
 		justify-content: center;
 		padding: 16px;
+		width: 100%;
+		min-height: 600px;
 	}
 
 	h1 {

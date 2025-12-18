@@ -17,6 +17,7 @@ def normalise_id(id):
         return None
     s = str(id).strip()
     nid = s.strip('@')
+    nid = re.sub(r'^[A-Za-z]+', '', nid)
     return nid if nid != "" else None
 
 def add_data(elements, db):
