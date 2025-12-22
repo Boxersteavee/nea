@@ -1,10 +1,12 @@
 from gedcom.parser import Parser
 from gedcom.element.individual import IndividualElement
 from gedcom.element.family import FamilyElement
-import sqlite3
 import os
 import re
 from database import Database
+from config import get_cfg
+
+cfg = get_cfg()
 
 def parse_file(gedcom_path):
     parser = Parser()
@@ -18,6 +20,7 @@ def normalise_id(id):
     s = str(id).strip()
     nid = s.strip('@')
     nid = re.sub(r'^[A-Za-z]+', '', nid)
+    nid = re.sub(r'^[A-Za-z]+', '', nid)
     return nid if nid != "" else None
 
 def add_data(elements, db):
@@ -27,9 +30,9 @@ def add_data(elements, db):
 
                 # Get gender if available, set it to Male of Female
                 if element.get_gender() == "M":
-                    sex = "Male"
+                    sex = "male"
                 elif element.get_gender() == "F":
-                    sex = "Female"
+                    sex = "female"
                 else:
                     sex = ""
 
@@ -94,14 +97,12 @@ def add_data(elements, db):
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)
-    db_dir = "user_data/sql"
+    db_dir = cfg['db_dir']
     os.makedirs(db_dir, exist_ok=True)
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
-    # print(db_path)
     db = Database(db_path)
     db.create_fam_db()
-    # print(f"Adding data from {gedcom_path}")
     add_data(elements, db)
     db.backfill_parents()
     db.close()

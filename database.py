@@ -200,7 +200,25 @@ class Database:
             );
            ''')
         self.db_conn.commit()
+
+    def get_individuals(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("SELECT * FROM individuals")
+        individuals = []
+        for i in cursor:
+            individuals.append(i)
+        return individuals
+
+    def get_families(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("SELECT id, father_id, mother_id FROM families")
+        families = []
+        for i in cursor:
+            families.append(i)
+        return families
+
 # AUTH DATABASE FUNCTIONS
+    # Create Users Table
     def create_user_db(self):
         cursor = self.db_conn.cursor()
         cursor.execute('''
@@ -292,6 +310,7 @@ class Database:
         WHERE token = ?
         ''', (token,))
         self.db_conn.commit()
+
 
     def close(self):
         self.db_conn.commit()

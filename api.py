@@ -8,6 +8,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from config import get_cfg
 import auth
 from pydantic import EmailStr
+import sql2json
 
 api = FastAPI()
 cfg = get_cfg()
@@ -30,8 +31,8 @@ async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid token in order to upload files")
     username = auth.validate_session(token)
-    if username == None:
-        raise HTTPException(status_code=403, detail="You are not authorised to complete this request.")
+    if username == 401:
+        raise HTTPException(status_code=401, detail="You are not authorised to complete this request.")
     if not file.filename:
         raise HTTPException(status_code=400, detail="File required")
     extension = os.path.splitext(file.filename)[1].lower()
@@ -107,9 +108,24 @@ async def delete_user(token: str = Form(...)):
 @api.get('/tree/test')
 async def test_data():
     data = [
-        {"id": 1, "name": "Ben", "gender": "male", "fid": 2, "mid": 3, "img": ""},
-        {"id": 2, "name": "David", "gender": "male", "pids": [3], "img": ""},
-        {"id": 3, "name": "Janice", "gender": "female", "pids": [2], "img": ""},
-        {"id": 4, "name": "Alice", "gender": "female", "fid": 2, "mid": 3, "img": ""},
+        {"id": 4, "Name": "Ben Harris", "gender": "male", "Birth Place": "Gateshead", "fid": 1, "mid": 2},
+        {"id": 1, "Name": "David Harris", "gender": "male", "pids": [2]},
+        {"id": 2, "Name": "Janice Harris", "gender": "female", "pids": [1]},
+        {"id": 3, "Name": "Alice Harris", "gender": "female", "Birth Place": "Nijmegen", "Death Place": "", "fid": 1, "mid": 2},
     ]
     return data
+
+@api.get('/tree')
+async def get_tree(token: str, tree: str):
+    if not token:
+        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+    result = auth.validate_session(token)
+    if result == 401:
+        raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
+    try:
+        output = sql2json.run(tree)
+    except any as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+    if output == 404:
+        raise HTTPException(status_code=404, detail="Tree not found.")
+    return output

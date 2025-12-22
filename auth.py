@@ -44,11 +44,11 @@ def delete_user(token):
 def validate_session(token):
     row = db.get_session(token)
     if not row:
-        return None
+        return 401
     token, username, expires_at = row
     if datetime.fromisoformat(expires_at) < datetime.utcnow():
         db.delete_session(token)
-        return None
+        return 401
     return username
 
 def revoke_session(token):

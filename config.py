@@ -1,9 +1,8 @@
-from configparser import ConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 import os
 
-config = ConfigParser()
-
 def setup():
+    config = ConfigParser(interpolation=ExtendedInterpolation())
     default = config['DEFAULT']
     default['user_data_dir'] = 'user_data'
     default['gedcom_dir'] = '${user_data_dir}/gedcom'
@@ -14,8 +13,11 @@ def setup():
         config.write(configfile)
 
 def get_cfg() -> dict[str, str]:
+    config = ConfigParser(interpolation=ExtendedInterpolation())
     if not os.path.exists('config.ini'):
         setup()
     config.read('config.ini')
-    cfg = dict(config.defaults())
+    cfg = {}
+    for key in config['DEFAULT']:
+        cfg[key] = config.get('DEFAULT', key)
     return cfg
