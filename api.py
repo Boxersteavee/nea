@@ -10,7 +10,7 @@ import auth
 from pydantic import EmailStr
 import sql2json
 
-api = FastAPI()
+api = FastAPI(root_path="/api")
 cfg = get_cfg()
 
 # VARIABLES
@@ -18,8 +18,7 @@ UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
 
 @api.get("/")
 async def root():
-    user_data_dir = cfg['user_data_dir']
-    return 'Hello World! Visit /docs to see documentation on available requests.'
+    return 'Hello World!'
 
 # Take upload of gedcom file, process it, return 200 when complete.
 # If the file is not provided, return 400.

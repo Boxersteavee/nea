@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 # class for database
 # initialise DB (connect, which creates the file if it doesn't exist)

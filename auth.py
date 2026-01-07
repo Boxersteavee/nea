@@ -1,15 +1,18 @@
 import sqlite3
-
 from passlib.hash import argon2
 from database import Database
 from config import get_cfg
 from datetime import datetime, timedelta
 import secrets
+import os
 
 cfg = get_cfg()
-
-db = Database(f'{cfg['user_data_dir']}/auth.db')
 session_ttl = timedelta(hours=(float(cfg['session_ttl'])))
+user_dir = str(cfg['user_data_dir'])
+
+# Make DB
+os.makedirs(user_dir, exist_ok=True)
+db = Database(f'{cfg['user_data_dir']}/auth.db')
 db.create_user_db()
 db.create_sessions_table()
 
