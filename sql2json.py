@@ -9,7 +9,6 @@
 from database import Database
 from config import get_cfg
 import os
-import json
 
 cfg = get_cfg()
 
