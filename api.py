@@ -4,7 +4,7 @@ from gedcom import parser
 import shutil
 import sqlite3
 import os
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Response
 from config import get_cfg
 import auth
 from pydantic import EmailStr
@@ -15,7 +15,6 @@ cfg = get_cfg()
 
 # VARIABLES
 UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
-
 @api.get("/")
 async def root():
     return 'Hello World!'
@@ -86,14 +85,23 @@ async def create_user(username: str = Form(...), email: EmailStr = Form(...), pa
             raise HTTPException(status_code=500, detail="Error creating user")
 
 @api.post('/login/verify')
-async def verify_user(username: str = Form(...), password: str = Form(...)):
+async def verify_user(response: Response, username: str = Form(...), password: str = Form(...)):
     if not username or not password:
         raise HTTPException(status_code=400, detail="You must provide a username and password")
     result = auth.verify_user(username, password)
     if result == 401:
         raise HTTPException(status_code=403, detail= "Username or Password incorrect")
     token, expires_at = auth.create_session(username)
-    return {"token": token, "expires": expires_at}
+
+    response.set_cookie(
+        key="token",
+        value=token,
+        expires=expires_at,
+        httponly=True,
+        samesite="lax",
+    )
+
+    return {"username": username}
 
 @api.post('/login/delete')
 async def delete_user(token: str = Form(...)):
@@ -102,8 +110,19 @@ async def delete_user(token: str = Form(...)):
     result = auth.delete_user(token)
     if result == 401:
         raise HTTPException(status_code=401, detail="Invalid Session Token")
+    auth.revoke_session(token)
     return {"status": "ok"}
 
+@api.post('/login/logout')
+async def delete_session(token: str = Form(...)):
+    if not token:
+        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+    auth.revoke_session(token)
+    return {"status": "ok"}
+
+
+
+##### TREE ROUTES #####
 @api.get('/tree/test')
 async def test_data():
     data = [
@@ -128,3 +147,7 @@ async def get_tree(token: str, tree: str):
     if output == 404:
         raise HTTPException(status_code=404, detail="Tree not found.")
     return output
+
+@api.get('/config/ttl')
+async def get_ttl():
+    return {'ttl': cfg['session_ttl']}

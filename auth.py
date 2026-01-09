@@ -2,7 +2,7 @@ import sqlite3
 from passlib.hash import argon2
 from database import Database
 from config import get_cfg
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 import os
 
@@ -49,7 +49,7 @@ def validate_session(token):
     if not row:
         return 401
     token, username, expires_at = row
-    if datetime.fromisoformat(expires_at) < datetime.utcnow():
+    if datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):
         db.delete_session(token)
         return 401
     return username
@@ -59,6 +59,6 @@ def revoke_session(token):
 
 def create_session(username):
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + session_ttl
+    expires_at = datetime.now(timezone.utc) + session_ttl
     db.save_session(username, token, expires_at)
     return token, expires_at
