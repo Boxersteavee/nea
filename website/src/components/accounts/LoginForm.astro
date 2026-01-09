@@ -1,0 +1,49 @@
+<div class="container">
+    <form class="login" accept-charset="UTF-8">
+        <label>
+            Username:
+            <input type="text" name="username" required />
+        </label>
+        <label>
+            Password:
+            <input type="password" name="password" required />
+        </label>
+        <div>
+            <button type="submit">Login!</button>
+        </div>
+        <div class="error-message"></div>
+    </form>
+</div>
+
+<script>
+    const form = document.querySelector('.login') as HTMLFormElement | null;
+    const messageDiv = document.querySelector('.error-message');
+
+    if (form && messageDiv) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/login/verify', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = `Welcome ${data.username}`;
+                    messageDiv.style.color = 'green';
+                } else {
+                    messageDiv.textContent = 'Login Failed';
+                    messageDiv.style.color = 'red';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'An error occurred'
+                console.log(error);
+            }
+        })
+    }
+</script>

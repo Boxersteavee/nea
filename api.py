@@ -83,6 +83,17 @@ async def create_user(username: str = Form(...), email: EmailStr = Form(...), pa
             raise HTTPException(status_code=403, detail="Username already exists")
         else:
             raise HTTPException(status_code=500, detail="Error creating user")
+        token, expires_at = auth.create_session(username)
+
+        response.set_cookie(
+            key="token",
+            value=token,
+            expires=expires_at,
+            httponly=True,
+            samesite="lax",
+        )
+
+        return {"username": username}
 
 @api.post('/login/verify')
 async def verify_user(response: Response, username: str = Form(...), password: str = Form(...)):
