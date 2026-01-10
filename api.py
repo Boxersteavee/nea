@@ -4,7 +4,7 @@ from gedcom import parser
 import shutil
 import sqlite3
 import os
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Response
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Response, Request
 from config import get_cfg
 import auth
 from pydantic import EmailStr
@@ -25,7 +25,8 @@ async def root():
 
 ##### GEDCOM MANAGEMENT #####
 @api.post("/upload/gedcom")
-async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
+async def gedcom_upload(request: Request, file: UploadFile = File(...)):
+    token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid token in order to upload files")
     username = auth.validate_session(token)
@@ -75,25 +76,24 @@ async def gedcom_upload(file: UploadFile = File(...), token: str = Form(...)):
 
 ##### USER MANAGEMENT #####
 @api.post('/login/create')
-async def create_user(username: str = Form(...), email: EmailStr = Form(...), password: str = Form(...)):
+async def create_user(response: Response, username: str = Form(...), email: EmailStr = Form(...), password: str = Form(...)):
         result = auth.create_user(username, email, password)
         if result == 200:
-            return {"status": f"User {username} created successfully"}
+            token, expires_at = auth.create_session(username)
+
+            response.set_cookie(
+                key="token",
+                value=token,
+                expires=expires_at,
+                httponly=True,
+                samesite="lax",
+            )
+
+            return {"username": username}
         elif result == 403:
             raise HTTPException(status_code=403, detail="Username already exists")
         else:
             raise HTTPException(status_code=500, detail="Error creating user")
-        token, expires_at = auth.create_session(username)
-
-        response.set_cookie(
-            key="token",
-            value=token,
-            expires=expires_at,
-            httponly=True,
-            samesite="lax",
-        )
-
-        return {"username": username}
 
 @api.post('/login/verify')
 async def verify_user(response: Response, username: str = Form(...), password: str = Form(...)):
@@ -115,7 +115,8 @@ async def verify_user(response: Response, username: str = Form(...), password: s
     return {"username": username}
 
 @api.post('/login/delete')
-async def delete_user(token: str = Form(...)):
+async def delete_user(request: Request):
+    token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=400, detail="You must provide a valid session token")
     result = auth.delete_user(token)
@@ -125,7 +126,8 @@ async def delete_user(token: str = Form(...)):
     return {"status": "ok"}
 
 @api.post('/login/logout')
-async def delete_session(token: str = Form(...)):
+async def delete_session(request: Request):
+    token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=400, detail="You must provide a valid session token")
     auth.revoke_session(token)
@@ -145,7 +147,8 @@ async def test_data():
     return data
 
 @api.get('/tree')
-async def get_tree(token: str, tree: str):
+async def get_tree(request: Request, tree: str):
+    token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=400, detail="You must provide a valid session token")
     result = auth.validate_session(token)
