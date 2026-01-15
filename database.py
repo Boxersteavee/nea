@@ -312,6 +312,13 @@ class Database:
         ''', (token,))
         self.db_conn.commit()
 
+    def clear_sessions(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        DELETE FROM sessions
+        ''')
+        self.db_conn.commit()
+
 
     def close(self):
         self.db_conn.commit()

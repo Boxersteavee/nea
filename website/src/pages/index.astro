@@ -1,11 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
-const response = await fetch(new URL('/api', Astro.url))
-const data = await response.json();
 ---
-
 <Layout>
-    <a href="/login">Login!</a>
-    <a href="/register">Register!</a>
+    <link rel="stylesheet" href="/css/style.css">
+    <div class="container">
+        <div class="form">
+            <button onclick="window.location.href='/login'">Login!</button>
+            <button onclick="window.location.href='/register'">Register!</button>
+        </div>
+    </div>
 </Layout>
 
+<script>
+    async function checkSession() {
+        try {
+            const response = await fetch('/api/checksession', {
+                credentials: 'include'
+            });
+            if (response.status === 200) {
+                window.location.href = '/upload';
+            }
+        } catch (error) {
+            // No valid session, stay on page
+        }
+    }
+
+    checkSession();
+</script>

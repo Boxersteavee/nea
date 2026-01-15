@@ -1,3 +1,4 @@
+/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -11,8 +12,10 @@ body {
   background-color: #494949;
   margin: 0;
   padding: 0;
+  color: white;
 }
 
+/* Container styles */
 .container {
   width: 90%;
   max-width: 400px;
@@ -20,6 +23,7 @@ body {
   position: relative;
 }
 
+/* Error message styles */
 .error-message {
   color: white;
   padding: 10px;
@@ -27,10 +31,15 @@ body {
   text-align: center;
   box-shadow: 0px 0px 10px 0px rgba(99, 98, 98, 0.75);
   margin-bottom: 45px;
-  margin-top: -30px;
+  margin-top: 10px;
 }
 
-.login,
+.error-message:empty {
+  display: none;
+}
+
+/* Form container styles */
+.form,
 .index {
   background-color: #333333;
   padding: 20px;
@@ -40,10 +49,11 @@ body {
   transition: margin-top 0.3s ease;
 }
 
-.container.error-active .login {
+.container.error-active .form {
   margin-top: -50px;
 }
 
+/* Quote styles */
 .quote {
   font-style: italic;
   font-size: 20px;
@@ -66,8 +76,9 @@ body {
   color: rgb(51, 170, 250);
 }
 
+/* Button styles */
 .index button,
-.login button {
+.form button {
   display: flex;
   outline: 0;
   padding: 8px 16px;
@@ -85,25 +96,22 @@ body {
 }
 
 .index button:hover,
-.login button:hover {
+.form button:hover {
   border-color: #373737;
   background-color: #494949;
   color: #373737;
 }
 
 .index button:disabled,
-.login button:disabled,
+.form button:disabled,
 button[disabled] {
   background-color: #2e2e2e;
   color: #666;
 }
 
-.login h1 {
-  text-align: center;
-  margin-bottom: 2.5%;
-}
-
-.login input {
+/* Form input styles */
+.form input,
+.index input {
   background-color: #2f2f30;
   outline: 0;
   border: none;
@@ -117,23 +125,45 @@ button[disabled] {
   margin-bottom: 5%;
 }
 
-.login input:focus {
+.form input:focus,
+.index input:focus {
   border: 2px solid #3a3d41;
 }
 
-.login label {
+/* Label styles */
+.form label,
+.index label {
   font-size: 18px;
+  display: block;
+  margin-bottom: 5px;
 }
 
-@media (max-width: 600px) {
+/* Link styles */
+a {
+  color: rgba(30, 158, 243, 0.733);
+  transition: color 0.3s ease;
+}
 
-  .login,
+a:hover {
+  color: rgb(51, 170, 250);
+}
+
+/* Heading styles */
+h1, h2, h3 {
+  color: white;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .form,
   .index {
     margin: 50px auto;
     padding: 15px;
   }
 
-  .login input {
+  .form input,
+  .index input {
     padding: 8px 15px;
   }
 

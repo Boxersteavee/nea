@@ -1,15 +1,51 @@
-<form action="/api/login/create" accept-charset="UTF-8" method="POST">
-    <label>
-        Username:
-        <input type="text" name="username" required />
-    </label>
-    <label>
-        Email:
-        <input type="email" name="email" required />
-    </label>
-    <label>
-        Password:
-        <input type="password" name="password" required minlength="8" />
-    </label>
-    <button>Register!</button>
-</form>
+<div class="container">
+    <form class="form" accept-charset="UTF-8">
+        <label>
+            Username:
+            <input type="text" name="username" required />
+        </label>
+        <label>
+            Email:
+            <input type="email" name="email" required />
+        </label>
+        <label>
+            Password:
+            <input type="password" name="password" required minlength="8" />
+        </label>
+        <div>
+            <button>Register!</button>
+        </div>
+        <div class="error-message"></div>
+    </form>
+</div>
+<script>
+    const form = document.querySelector('.form') as HTMLFormElement | null;
+    const messageDiv = document.querySelector('.error-message') as HTMLElement | null;
+
+    if (form && messageDiv) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/login/create', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/upload';
+                } else {
+                    messageDiv.textContent = data.detail || 'Registration Failed';
+                    messageDiv.style.color = 'red';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'An error occurred'
+                console.log(error);
+            }
+        })
+    }
+</script>

@@ -1,5 +1,5 @@
 <div class="container">
-    <form class="login" accept-charset="UTF-8">
+    <form class="form" accept-charset="UTF-8">
         <label>
             Username:
             <input type="text" name="username" required />
@@ -16,7 +16,7 @@
 </div>
 
 <script>
-    const form = document.querySelector('.login') as HTMLFormElement | null;
+    const form = document.querySelector('.form') as HTMLFormElement | null;
     const messageDiv = document.querySelector('.error-message');
 
     if (form && messageDiv) {
@@ -34,10 +34,9 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    messageDiv.textContent = `Welcome ${data.username}`;
-                    messageDiv.style.color = 'green';
+                    window.location.href = '/upload'
                 } else {
-                    messageDiv.textContent = 'Login Failed';
+                    messageDiv.textContent = data.detail || 'Registration Failed';
                     messageDiv.style.color = 'red';
                 }
             } catch (error) {

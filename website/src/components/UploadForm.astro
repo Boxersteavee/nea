@@ -1,0 +1,57 @@
+<div class="container">
+    <form class="form">
+        <label>
+            Upload File
+            <input type="file" id="upload" accept=".ged">
+        </label>
+        <div>
+            <button type="submit">Submit!</button>
+        </div>
+        <div class="error-message"></div>
+    </form>
+</div>
+
+<script>
+    const form = document.querySelector('.form') as HTMLFormElement | null;
+    const messageDiv = document.querySelector('.error-message');
+
+    if (form && messageDiv) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('upload') as HTMLInputElement;
+            const file = fileInput?.files?.[0];
+
+            if (!file) {
+                messageDiv.textContent = "You must select a file"
+                messageDiv.style.color = "red";
+                return;
+            }
+
+            const formData = new FormData(form);
+            formData.append('file', file);
+
+            messageDiv.textContent = "Processing..."
+            messageDiv.style.color = "green";
+
+            try {
+                const response = await fetch('/api/upload/gedcom', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = 'Upload Successful'
+                } else {
+                    messageDiv.textContent = data.detail || 'Upload Failed'
+                    messageDiv.style.color = 'red';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'An error occured'
+                console.log(error);
+            }
+        })
+    }
+</script>

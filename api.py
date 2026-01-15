@@ -98,7 +98,7 @@ async def create_user(response: Response, username: str = Form(...), email: Emai
 @api.post('/login/verify')
 async def verify_user(response: Response, username: str = Form(...), password: str = Form(...)):
     if not username or not password:
-        raise HTTPException(status_code=400, detail="You must provide a username and password")
+        raise HTTPException(status_code=401, detail="You must provide a username and password")
     result = auth.verify_user(username, password)
     if result == 401:
         raise HTTPException(status_code=403, detail= "Username or Password incorrect")
@@ -114,11 +114,21 @@ async def verify_user(response: Response, username: str = Form(...), password: s
 
     return {"username": username}
 
+@api.get('/checksession')
+async def check_session(request: Request):
+    token = request.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    result = auth.validate_session(token)
+    if result == 401:
+        raise HTTPException(status_code=401, detail="Invalid Session Token")
+    return {"status": "ok"}
+
 @api.post('/login/delete')
 async def delete_user(request: Request):
     token = request.cookies.get("token")
     if not token:
-        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
     result = auth.delete_user(token)
     if result == 401:
         raise HTTPException(status_code=401, detail="Invalid Session Token")
@@ -129,11 +139,9 @@ async def delete_user(request: Request):
 async def delete_session(request: Request):
     token = request.cookies.get("token")
     if not token:
-        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
     auth.revoke_session(token)
     return {"status": "ok"}
-
-
 
 ##### TREE ROUTES #####
 @api.get('/tree/test')
@@ -150,7 +158,7 @@ async def test_data():
 async def get_tree(request: Request, tree: str):
     token = request.cookies.get("token")
     if not token:
-        raise HTTPException(status_code=400, detail="You must provide a valid session token")
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
     result = auth.validate_session(token)
     if result == 401:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
