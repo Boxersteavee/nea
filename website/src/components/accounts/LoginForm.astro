@@ -34,7 +34,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    window.location.href = '/upload'
+                    window.location.href = '/home'
                 } else {
                     messageDiv.textContent = data.detail || 'Registration Failed';
                     messageDiv.style.color = 'red';

@@ -1,0 +1,59 @@
+<div class="container">
+    <div class="form">
+        <h2>Your Trees</h2>
+        <div id="trees-list">
+            <p>Loading...</p>
+        </div>
+        <div class="error-message"></div>
+    </div>
+</div>
+
+<script>
+    const treesList = document.getElementById('trees-list') as HTMLElement | null;
+    const messageDiv = document.querySelector('.error-message') as HTMLElement | null;
+
+    async function loadTrees() {
+        if (!treesList || !messageDiv) return;
+
+        try {
+            const response = await fetch('/api/trees', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                messageDiv.textContent = data.detail || 'Failed to load trees';
+                messageDiv.style.color = 'red';
+                treesList.innerHTML = '';
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.families && data.families.length > 0) {
+                treesList.innerHTML = data.families
+                    .map((tree: string) =>
+                        `<a href="/tree?tree=${encodeURIComponent(tree)}" style="text-decoration: none;">
+                            <button type="button">${tree}</button>
+                        </a>`
+                    )
+                    .join('');
+                messageDiv.textContent = '';
+            } else {
+                treesList.innerHTML = '<p>No trees uploaded yet.</p>';
+                messageDiv.textContent = '';
+            }
+        } catch (error) {
+            console.error('Error loading trees:', error);
+            messageDiv.textContent = 'An error occurred';
+            messageDiv.style.color = 'red';
+            treesList.innerHTML = '';
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadTrees);
+    } else {
+        loadTrees();
+    }
+</script>

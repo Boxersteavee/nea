@@ -25,35 +25,36 @@ def normalise_id(id):
 
 def add_data(elements, db):
         for element in elements:
-            if isinstance(element, IndividualElement):
+            if isinstance(element, IndividualElement): # If the element is an individual (person)
                 id = normalise_id(element.get_pointer())
 
-                # Get gender if available, set it to Male of Female
+                # Get gender if available, set it to Male or Female
                 if element.get_gender() == "M":
-                    sex = "male"
+                    gender = "male"
                 elif element.get_gender() == "F":
-                    sex = "female"
+                    gender = "female"
                 else:
-                    sex = ""
+                    gender = ""
 
                 name_data = element.get_name()
 
+                # Check if name_data contains anything. If it does, set the first_name and last_name from it, else leave it blank
                 if name_data:
                     first_name, last_name = name_data
                 else:
                     first_name, last_name = "", ""
 
+                # Retrieve other data
                 birth_date = element.get_birth_date()
                 birth_place = element.get_birth_place()
                 death_date = element.get_death_date()
                 death_place = element.get_death_place()
                 occupation = element.get_occupation()
 
-                db.add_person_data(id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
+                db.add_person_data(id, first_name, last_name, gender, birth_date, birth_place, death_date, death_place, occupation)
 
-        for element in elements:
-            if isinstance(element, FamilyElement):
-                id = normalise_id(element.get_pointer())
+            elif isinstance(element, FamilyElement): # If the element is a Family
+                id = None
                 mother_id = None
                 father_id = None
                 marriage_date = ""
@@ -66,10 +67,10 @@ def add_data(elements, db):
                     children = []
                     for child in element.get_children():
                         child_str = str(child).strip()
-                        normalized_child_id = re.sub(r'^.*?@', '@', child_str)
-                        normalized_child_id = normalise_id(normalized_child_id)
-                        if normalized_child_id:
-                            children.append(normalized_child_id)
+                        child_id = re.sub(r'^.*?@', '@', child_str)
+                        normalised_child_id = normalise_id(child_id)
+                        if normalised_child_id:
+                            children.append(normalised_child_id)
                 except IndexError:
                     pass
 
@@ -87,13 +88,11 @@ def add_data(elements, db):
                 if mother_id == "" or mother_id is None:
                     mother_id = None
 
+                id = normalise_id(element.get_pointer())
                 mother_id = normalise_id(mother_id)
                 father_id = normalise_id(father_id)
 
                 db.add_family_data(id, father_id, mother_id, marriage_date, marriage_place, children)
-
-                children = []
-        # print("Data Successfully Added to Database")
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)

@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+import UploadForm from '../components/UploadForm.astro';
+import TreesList from '../components/TreesList.astro';
+---
+<Layout>
+    <link rel="stylesheet" href="/css/style.css">
+    <div class="home-layout">
+        <div class="left-panel">
+            <TreesList />
+        </div>
+        <div class="right-panel">
+            <UploadForm />
+        </div>
+    </div>
+</Layout>

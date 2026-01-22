@@ -18,7 +18,7 @@ import Layout from '../layouts/Layout.astro';
                 credentials: 'include'
             });
             if (response.status === 200) {
-                window.location.href = '/upload';
+                window.location.href = '/home';
             }
         } catch (error) {
             // No valid session, stay on page

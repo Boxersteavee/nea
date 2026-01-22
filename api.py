@@ -1,3 +1,4 @@
+# Imports
 from werkzeug.utils import secure_filename
 import ged2sql
 from gedcom import parser
@@ -9,12 +10,17 @@ from config import get_cfg
 import auth
 from pydantic import EmailStr
 import sql2json
+from database import Database
+from auth import db as auth_db
 
+# Set the config for FastAPI, and read the config file into cfg dictionary
 api = FastAPI(root_path="/api")
 cfg = get_cfg()
 
-# VARIABLES
+# Config-set variables
 UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
+
+# Hello world test on root API (check it works)
 @api.get("/")
 async def root():
     return 'Hello World!'
@@ -52,6 +58,8 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)):
 
     try:
         ged2sql.run(file_path)
+        family_name = os.path.splitext(filename)[0]
+        auth_db.add_family_to_user(username, family_name)
     except sqlite3.DatabaseError as e:
         message = f'Database file is corrupted. Please delete/move it and try again. {e}'
         print(f"SQL.DatabaseError: {e}")
@@ -170,6 +178,16 @@ async def get_tree(request: Request, tree: str):
         raise HTTPException(status_code=404, detail="Tree not found.")
     return output
 
+@api.get('/trees')
+async def get_trees(request: Request):
+    token = request.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    result = auth.validate_session(token)
+    if result == 401:
+        raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
+    families = auth_db.get_user_families(result)
+    return {"families": families}
 @api.get('/config/ttl')
 async def get_ttl():
     return {'ttl': cfg['session_ttl']}

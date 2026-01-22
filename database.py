@@ -226,7 +226,8 @@ class Database:
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 email TEXT,
-                pass_hash TEXT
+                pass_hash TEXT,
+                families TEXT
             )  
         ''')
         self.db_conn.commit()
@@ -243,6 +244,46 @@ class Database:
             email,
             pass_hash
         ))
+        self.db_conn.commit()
+
+    def add_family_to_user(self, username, family_name):
+        cursor = self.db_conn.cursor()
+
+    def get_user_families(self, username):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+        SELECT families
+        FROM users
+        WHERE username = ?
+        ''', (username,))
+        result = cursor.fetchone()
+
+        if result and result[0]:
+            families_str = result[0]
+            families_list = []
+
+            for family in families_str.split(','):
+                stripped_family = family.strip()
+                if stripped_family:
+                    families_list.append(stripped_family)
+
+            return families_list
+
+        return []
+
+    def add_family_to_user(self, username, family_name):
+        cursor = self.db_conn.cursor()
+        current_families = self.get_user_families(username)
+        if family_name not in current_families:
+            current_families.append(family_name)
+
+        updated_families = ','.join(current_families)
+
+        cursor.execute('''
+        UPDATE users
+        SET families = ?
+        WHERE username = ?
+        ''',(updated_families, username))
         self.db_conn.commit()
 
     def delete_user(self, username):
