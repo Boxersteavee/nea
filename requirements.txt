@@ -5,3 +5,4 @@ uvicorn
 argon2-cffi
 python-multipart
 pydantic[email]
+werkzeug

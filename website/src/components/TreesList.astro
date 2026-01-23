@@ -4,13 +4,13 @@
         <div id="trees-list">
             <p>Loading...</p>
         </div>
-        <div class="error-message"></div>
+        <div class="error-message" id="trees-error-message"></div>
     </div>
 </div>
 
 <script>
-    const treesList = document.getElementById('trees-list') as HTMLElement | null;
-    const messageDiv = document.querySelector('.error-message') as HTMLElement | null;
+    const treesList = document.getElementById('trees-list');
+    const messageDiv = document.getElementById('trees-error-message');
 
     async function loadTrees() {
         if (!treesList || !messageDiv) return;

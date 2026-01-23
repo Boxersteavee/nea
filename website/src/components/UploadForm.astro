@@ -1,5 +1,5 @@
 <div class="container">
-    <form class="form">
+    <form class="form" id="upload-form">
         <label>
             Upload Gedcom File
             <input type="file" id="upload" accept=".ged">
@@ -7,19 +7,19 @@
         <div>
             <button type="submit">Submit!</button>
         </div>
-        <div class="error-message"></div>
+        <div class="error-message" id="upload-error-message"></div>
     </form>
 </div>
 
 <script>
-    const form = document.querySelector('.form') as HTMLFormElement | null;
-    const messageDiv = document.querySelector('.error-message');
+    const form = document.getElementById('upload-form');
+    const messageDiv = document.getElementById('upload-error-message');
 
     if (form && messageDiv) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const fileInput = document.getElementById('upload') as HTMLInputElement;
+            const fileInput = document.getElementById('upload');
             const file = fileInput?.files?.[0];
 
             if (!file) {
@@ -38,6 +38,7 @@
                 const response = await fetch('/api/upload/gedcom', {
                     method: 'POST',
                     body: formData,
+                    credentials: 'include'
                 });
 
                 const data = await response.json();
@@ -49,7 +50,7 @@
                     messageDiv.style.color = 'red';
                 }
             } catch (error) {
-                messageDiv.textContent = 'An error occured'
+                messageDiv.textContent = 'An error occurred'
                 console.log(error);
             }
         })
