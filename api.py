@@ -19,6 +19,7 @@ cfg = get_cfg()
 
 # Config-set variables
 UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
+DATA_DIR = f"{cfg['user_data_dir']}"
 
 # Hello world test on root API (check it works)
 @api.get("/")
@@ -172,11 +173,29 @@ async def get_tree(request: Request, tree: str):
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
     try:
         output = sql2json.run(tree)
-    except any as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
     if output == 404:
         raise HTTPException(status_code=404, detail="Tree not found.")
     return output
+
+@api.post('/tree/delete')
+async def delete_tree(request: Request, tree: str):
+    token = request.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    result = auth.validate_session(token)
+    if result == 401:
+        raise HTTPException(status_code=401, detail="You not authorised to complete this request")
+    try:
+        auth_db.delete_user_family(result, tree)
+        tree_path = f"{DATA_DIR}/sql/{tree}.db"
+        ged_path = f"{DATA_DIR}/gedcom/{tree}.ged"
+        os.remove(tree_path)
+        os.remove(ged_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+    return {"status": "ok"}
 
 @api.get('/trees')
 async def get_trees(request: Request):

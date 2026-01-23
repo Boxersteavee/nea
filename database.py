@@ -286,6 +286,20 @@ class Database:
         ''',(updated_families, username))
         self.db_conn.commit()
 
+    def delete_user_family(self, username, family_name):
+        cursor = self.db_conn.cursor()
+        current_families = self.get_user_families(username)
+
+        current_families.remove(family_name)
+        updated_families = ','.join(current_families)
+
+        cursor.execute('''
+        UPDATE users
+        SET families = ?
+        WHERE username = ?
+        ''', (updated_families, username))
+        self.db_conn.commit()
+
     def delete_user(self, username):
         cursor = self.db_conn.cursor()
         cursor.execute('''
