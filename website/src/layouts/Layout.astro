@@ -1,4 +1,6 @@
-<!doctype html>
+---
+import NavBar from '../components/NavBar.astro';
+---
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
@@ -7,6 +9,9 @@
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
 	</head>
+    <nav>
+        <NavBar />
+    </nav>
 	<body>
 		<slot />
 	</body>
