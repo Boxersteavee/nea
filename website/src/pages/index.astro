@@ -1,15 +1,10 @@
----
-import Layout from '../layouts/Layout.astro';
----
-<Layout>
-    <link rel="stylesheet" href="/css/style.css">
-    <div class="container">
-        <div class="form">
-            <button onclick="window.location.href='/login'">Login!</button>
-            <button onclick="window.location.href='/register'">Register!</button>
-        </div>
+<link rel="stylesheet" href="/css/style.css">
+<div class="container">
+    <div class="form">
+        <button onclick="window.location.href='/login'">Login!</button>
+        <button onclick="window.location.href='/register'">Register!</button>
     </div>
-</Layout>
+</div>
 
 <script>
     async function checkSession() {

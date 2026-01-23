@@ -38,6 +38,28 @@ body {
   display: none;
 }
 
+/* Nav Bar Styles */
+.nav,
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color; #494949;
+}
+
+ul li {
+  float: left;
+}
+
+ul li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
 /* Form container styles */
 .form,
 .index {
