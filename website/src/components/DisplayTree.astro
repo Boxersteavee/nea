@@ -102,6 +102,9 @@
             const rootNode = validatedData.find(n => n.id === 1);
             if (!rootNode) {
                 console.error('CRITICAL ERROR: Root node with ID 1 not found in validated data. Tree initialization aborted.');
+                messageDiv.textContent = 'Root Node not in data, cannot render tree.';
+                messageDiv.style.text = 'red'
+                messageDiv.style.text = 'red'
                 return;
             }
 
@@ -114,9 +117,14 @@
                     nodeBinding: {
                         field_0: 'Name',
                         field_1: 'Birth Date'
-                    }
+                    },
+                    editForm: {
+                        readOnly: true
+                    },
+                    nodeMouseClick: FamilyTree.action.details
                 });
                 tree.onInit(() => {
+                    tree.center(1);
                 });
             } catch (e) {
                 console.error('FamilyTree initialization error:', e);

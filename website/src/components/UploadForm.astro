@@ -45,6 +45,7 @@
 
                 if (response.ok) {
                     messageDiv.textContent = 'Upload Successful'
+                    location.reload()
                 } else {
                     messageDiv.textContent = data.detail || 'Upload Failed'
                     messageDiv.style.color = 'red';
