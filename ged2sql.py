@@ -92,7 +92,9 @@ def add_data(elements, db):
                 mother_id = normalise_id(mother_id)
                 father_id = normalise_id(father_id)
 
-                db.add_family_data(id, father_id, mother_id, marriage_date, marriage_place, children)
+                db.add_family_data(id, father_id, mother_id, marriage_date, marriage_place)
+                for child_id in children:
+                    db.add_family_child(id, child_id)
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)
@@ -103,6 +105,4 @@ def run(gedcom_path):
     db = Database(db_path)
     db.create_fam_db()
     add_data(elements, db)
-    db.backfill_parents()
     db.close()
-

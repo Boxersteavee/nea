@@ -11,9 +11,11 @@ class Database:
         except sqlite3.Error as e:
             print(f"SQL Error Occurred: {e}")
 
+    ### ADDING TREE DATA ###
+
     def create_fam_db(self):
         cursor = self.db_conn.cursor()
-        # Create individuals table, with mother_id and father_id set as foreign_keys dependent on id (which has a foreign key set by families table)
+        # Create individuals table
         cursor.execute('''
            CREATE TABLE IF NOT EXISTS individuals (
               id TEXT PRIMARY KEY,
@@ -24,16 +26,10 @@ class Database:
               birth_place TEXT,
               death_date TEXT,
               death_place TEXT,
-              occupation TEXT,
-              mother_id TEXT,
-              father_id TEXT,
-              FOREIGN KEY(father_id) REFERENCES individuals(id) ON DELETE SET NULL,
-              FOREIGN KEY(mother_id) REFERENCES individuals(id) ON DELETE SET NULL               
-           )
+              occupation TEXT            
+            )
            ''')
-        # Create families table, with mother_id and father_id set to foreign keys linked to individuals(id), linking them to a person.
-        # 'children' is a list which exists to make lookups easier, this is why this table is not normalised.
-        # Having another table with duplicated of individuals would make things unnecessarily complicated.
+        # Create families table
         cursor.execute('''
            CREATE TABLE IF NOT EXISTS families (
                id TEXT PRIMARY KEY,
@@ -41,119 +37,21 @@ class Database:
                mother_id TEXT,
                marriage_date TEXT,
                marriage_place TEXT,
-               children TEXT,
                FOREIGN KEY(mother_id) REFERENCES individuals(id) ON DELETE SET NULL,
                FOREIGN KEY(father_id) REFERENCES individuals(id) ON DELETE SET NULL
            )    
            ''')
 
-        ### TRIGGERS ###
-        # These triggers are necessary because the data is inserted after the table is created,
-        # and as there are crossing over foreign keys, they must be updated after the data was inserted.
-        # The triggers ensure that automatically occurs whenever the data is updated.
-
-
-        # parent_insert_data inserts the mother_id and father_id of children, taken from the mother_id and father_id fields of a family row,
-        # and inserted iteratively to each child in the 'children' list of that family
-        # Create parent_insert_data trigger
-        try:
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS parent_insert_data
-                AFTER INSERT ON families
-                BEGIN
-                    UPDATE individuals
-                    SET father_id = NEW.father_id,
-                        mother_id = NEW.mother_id
-                    WHERE id IN (
-                        WITH RECURSIVE split(token, rest) AS (
-                            SELECT '', COALESCE(NEW.children, '') || ','
-                            UNION ALL
-                            SELECT substr(rest, 1, instr(rest, ',') - 1),
-                                   substr(rest, instr(rest, ',') + 1)
-                            FROM split
-                            WHERE rest <> ''
-                        )
-                        SELECT trim(token) FROM split WHERE token <> ''
-                    );
-                END;
-            ''')
-        except sqlite3.DatabaseError as e:
-            print(f"failed on insert_data: {e}")
-            raise
-
-        # The parent_update_data trigger is currently unused,
-        # It has the same goal as parent_add_data but when data about a family is being changed.
-        # This is future-proofing for if I add the ability to edit a tree after uploading it.
-        # Create parent_update_data
-        try:
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS parent_update_data
-                AFTER UPDATE OF father_id, mother_id, children ON families
-                BEGIN
-                    -- Reset old parent relationships
-                    UPDATE individuals
-                    SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
-                        mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
-                    WHERE id IN (
-                        WITH RECURSIVE split_old(token, rest) AS (
-                            SELECT '', COALESCE(OLD.children, '') || ','
-                            UNION ALL
-                            SELECT substr(rest, 1, instr(rest, ',') - 1),
-                                   substr(rest, instr(rest, ',') + 1)
-                            FROM split_old
-                            WHERE rest <> ''
-                        )
-                        SELECT trim(token) FROM split_old WHERE token <> ''
-                    );
-        
-                    -- Set new parent relationships
-                    UPDATE individuals
-                    SET father_id = NEW.father_id,
-                        mother_id = NEW.mother_id
-                    WHERE id IN (
-                        WITH RECURSIVE split_new(token, rest) AS (
-                            SELECT '', COALESCE(NEW.children, '') || ','
-                            UNION ALL
-                            SELECT substr(rest, 1, instr(rest, ',') - 1),
-                                   substr(rest, instr(rest, ',') + 1)
-                            FROM split_new
-                            WHERE rest <> ''
-                        )
-                        SELECT trim(token) FROM split_new WHERE token <> ''
-                    );
-                END;
-            ''')
-        except sqlite3.DatabaseError as e:
-            print(f"Failed on update_data: {e}")
-            raise
-        # The parent_delete_data trigger is also unused like parent_update_data
-        # If editing functionality was implemented, this would be triggered when deleting families,
-        # so would remove the mother_id and father_id from those children and set them to null.
-        # Create parent_delete_data trigger
-        try:
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS parent_delete_data
-                AFTER DELETE ON families
-                BEGIN
-                    UPDATE individuals
-                    SET father_id = CASE WHEN father_id = OLD.father_id THEN NULL ELSE father_id END,
-                        mother_id = CASE WHEN mother_id = OLD.mother_id THEN NULL ELSE mother_id END
-                    WHERE id IN (
-                        WITH RECURSIVE split(token, rest) AS (
-                            SELECT '', COALESCE(OLD.children, '') || ','
-                            UNION ALL
-                            SELECT substr(rest, 1, instr(rest, ',') - 1),
-                                   substr(rest, instr(rest, ',') + 1)
-                            FROM split
-                            WHERE rest <> ''
-                        )
-                        SELECT trim(token) FROM split WHERE token <> ''
-                    );
-                END;
-            ''')
-        except sqlite3.DatabaseError as e:
-            print(f"Failed on delete_data: {e}")
-            raise
+        # Creates linked table of family_children, which exists to keep track of the children each family has.
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS family_children (
+                family_id TEXT NOT NULL,
+                child_id TEXT NOT NULL,
+                PRIMARY KEY (family_id, child_id),
+                FOREIGN KEY(family_id) REFERENCES families(id) ON DELETE CASCADE,
+                FOREIGN KEY(child_id) REFERENCES individuals(id) ON DELETE CASCADE
+                )
+        ''')
         self.db_conn.commit()
 
 
@@ -162,8 +60,8 @@ class Database:
         cursor = self.db_conn.cursor()
         cursor.execute('''
             INSERT OR IGNORE INTO individuals (
-                id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation, mother_id, father_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+                id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
             id,
             first_name,
@@ -178,49 +76,30 @@ class Database:
         self.db_conn.commit()
 
     # add_family_data takes information about a family and adds it to the families table
-    def add_family_data(self, id, father_id, mother_id, marriage_date, marriage_place, children):
+    def add_family_data(self, id, father_id, mother_id, marriage_date, marriage_place):
         cursor = self.db_conn.cursor()
-        children_str = ','.join(children) if children else ''
-        # print(f"Inserting family: {id}, father={father_id}, mother={mother_id}, children={children_str}")
         cursor.execute('''
             INSERT OR IGNORE INTO families (
-                id, father_id, mother_id, marriage_date, marriage_place, children)
-            VALUES (?, ?, ?, ?, ?, ?)
+                id, father_id, mother_id, marriage_date, marriage_place)
+            VALUES (?, ?, ?, ?, ?)
            ''', (
                id,
                father_id,
                mother_id,
                marriage_date,
                marriage_place,
-               children_str
            ))
         self.db_conn.commit()
 
-    # This method exists as a fallback incase parent_insert_data fails to fire.
-    # It iterates through all individuals, finds where they occur in children of the families
-    # table and adds the mother_id and father_id of that entry to that individual.
-    def backfill_parents(self):
+    def add_family_child(self, family_id, child_id):
         cursor = self.db_conn.cursor()
         cursor.execute('''
-           UPDATE individuals
-           SET father_id = (
-                SELECT f.father_id
-                FROM families f
-                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
-                LIMIT 1
-            ),
-            mother_id = (
-                SELECT f.mother_id
-                FROM families f
-                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
-                LIMIT 1
-            )
-            WHERE EXISTS (
-                SELECT 1 FROM families f
-                WHERE ',' || f.children || ',' LIKE '%,' || individuals.id || ',%'
-            );
-           ''')
+            INSERT OR IGNORE INTO family_children (family_id, child_id)
+            VALUES (?, ?)
+        ''', (family_id, child_id))
         self.db_conn.commit()
+
+    ### RETRIEVING TREE DATA ###
 
     # get_individuals iterates through the individuals table
     # appending each one (including all of their data) to a list
@@ -242,7 +121,22 @@ class Database:
             families.append(i)
         return families
 
-# AUTH DATABASE FUNCTIONS
+    def get_individual_parents(self, child_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute('''
+            SELECT families.mother_id, families.father_id
+            FROM family_children
+            JOIN families ON family_children.family_id = families.id
+            WHERE family_children.child_id = ?
+        ''', (child_id,))
+        result = cursor.fetchone()
+        if result:
+            return result
+        else:
+            return (None, None)
+
+    ##### AUTH DATABASE FUNCTIONS #####
+
     # Create Users Table
     def create_user_db(self):
         cursor = self.db_conn.cursor()
@@ -250,10 +144,26 @@ class Database:
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 email TEXT,
-                pass_hash TEXT,
-                families TEXT
+                pass_hash TEXT
             )  
         ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trees (
+                tree_name TEXT PRIMARY KEY
+            )
+        ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user_trees (
+                username TEXT NOT NULL,
+                tree_name TEXT NOT NULL,
+                PRIMARY KEY (username, tree_name),
+                FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
+                FOREIGN KEY(tree_name) REFERENCES trees(tree_name) ON DELETE CASCADE
+            )
+        ''')
+
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
@@ -283,67 +193,53 @@ class Database:
             pass_hash
         ))
         self.db_conn.commit()
-    # Gets the families a specific username has by selecting the families field in the users table.
+    # Gets the trees a specific username has access to by selecting the trees field in the users table.
     # Takes this output, splits the string into a list and adds each entry to a list,
     # before returning the list
     # If result is blank, it returns an empty string
-    def get_user_families(self, username):
+    def get_user_trees(self, username):
         cursor = self.db_conn.cursor()
         cursor.execute('''
-        SELECT families
-        FROM users
+        SELECT tree_name
+        FROM user_trees
         WHERE username = ?
         ''', (username,))
-        result = cursor.fetchone()
+        result = cursor.fetchall()
 
-        if result and result[0]:
-            families_str = result[0]
-            families_list = []
+        trees_list = []
+        for row in result:
+            trees_list.append(row[0])
 
-            for family in families_str.split(','):
-                stripped_family = family.strip()
-                if stripped_family:
-                    families_list.append(stripped_family)
+        return trees_list
 
-            return families_list
-
-        return []
-
-    # Adds a family to a user, first by getting their list of families (by calling get_user_families)
-    # and then appending the given family to that list, and commiting it to the db.
-    def add_family_to_user(self, username, family_name):
+    # Adds a trees to a user, first by getting their list of trees (by calling get_user_trees)
+    # and then appending the given trees to that list, and commiting it to the db.
+    def add_tree_to_user(self, username, tree_name):
         cursor = self.db_conn.cursor()
-        current_families = self.get_user_families(username)
-        if family_name not in current_families:
-            current_families.append(family_name)
-
-        updated_families = ','.join(current_families)
 
         cursor.execute('''
-        UPDATE users
-        SET families = ?
-        WHERE username = ?
-        ''',(updated_families, username))
+            INSERT OR IGNORE INTO trees (tree_name)
+            VALUES (?)
+        ''', (tree_name,))
+
+        cursor.execute('''
+            INSERT OR IGNORE INTO user_trees (username, tree_name)
+            VALUES (?,?)
+        ''', (username, tree_name))
+
         self.db_conn.commit()
 
-    # Deletes a user's family by calling get_user_families,
-    # then tries to remove the given family from the list and commit it to the DB.
-    # If the given family is not present, it silently continues.
-    def delete_user_family(self, username, family_name):
+    # Deletes a user's trees by calling get_user_trees,
+    # then tries to remove the given trees from the list and commit it to the DB.
+    # If the given trees is not present, it silently continues.
+    def delete_user_tree(self, username, tree_name):
         cursor = self.db_conn.cursor()
-        current_families = self.get_user_families(username)
-
-        try:
-            current_families.remove(family_name)
-        except ValueError:
-            print("Family Not found, continuing...")
-        updated_families = ','.join(current_families)
 
         cursor.execute('''
-        UPDATE users
-        SET families = ?
-        WHERE username = ?
-        ''', (updated_families, username))
+            DELETE FROM user_trees
+            WHERE username = ? AND tree_name = ?
+        ''', (username, tree_name))
+
         self.db_conn.commit()
 
     # Removes a given username from the DB (currently not used, exists in API)
@@ -416,7 +312,7 @@ class Database:
         ''')
         self.db_conn.commit()
 
-    # Commit to the DB and close the connection. This deletes the instance of the class.
+    # Commit to the DB and close the connection.
     def close(self):
         self.db_conn.commit()
         self.db_conn.close()

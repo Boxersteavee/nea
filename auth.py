@@ -43,6 +43,13 @@ def delete_user(token):
     db.delete_user(username)
     return 200
 
+def check_tree_match(username, tree):
+    trees = db.get_user_trees(username)
+    if tree in trees:
+        return True
+    else:
+        return False
+
 ##### SESSION MANAGEMENT #####
 def validate_session(token):
     row = db.get_session(token)

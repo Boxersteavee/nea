@@ -30,8 +30,8 @@
 
             const data = await response.json();
 
-            if (data.families && data.families.length > 0) {
-                treesList.innerHTML = data.families
+            if (data.trees && data.trees.length > 0) {
+                treesList.innerHTML = data.trees
                     .map((tree: string) =>
                         `<a href="/tree?tree=${encodeURIComponent(tree)}" style="text-decoration: none;">
                             <button type="button">${tree}</button>

@@ -1,4 +1,5 @@
 # Import database and create connection
+from types import new_class
 
 # for each row in individuals table:
 #    get id, conc(first_name,last_name), gender, birth_date, birth_place, death_date,
@@ -14,28 +15,24 @@ cfg = get_cfg()
 
 def add_partners(db):
     individuals = db.get_individuals()
-    if individuals == None:
-        print("No individuals found... Then why does this db exist?")
-        return None
-
     families = db.get_families()
 
     partner_map = {}
     for family in families:
         family_id, father_id, mother_id = family
-        if father_id is None or mother_id is None:
-            continue
-        partner_map[father_id] = mother_id
-        partner_map[mother_id] = father_id
+        if father_id and mother_id:
+            partner_map[father_id] = mother_id
+            partner_map[mother_id] = father_id
 
-    newindividuals = []
+    new_individuals = []
     for individual in individuals:
         id = individual[0]
+        mother_id, father_id = db.get_individual_parents(id)
         partner_id = partner_map.get(id)
-        individual_updated = individual + (partner_id,)
-        newindividuals.append(individual_updated)
+        individual_updated = individual + (mother_id, father_id, partner_id)
+        new_individuals.append(individual_updated)
 
-    return newindividuals
+    return new_individuals
 
 def jsonify(individuals):
     jsonified = []

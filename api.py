@@ -26,11 +26,10 @@ DATA_DIR = f"{cfg['user_data_dir']}"
 async def root():
     return 'Hello World!'
 
+##### GEDCOM MANAGEMENT #####
 # Take upload of gedcom file, process it, return 200 when complete.
 # If the file is not provided, return 400.
 # If there's another error, return 500 and provide the error.
-
-##### GEDCOM MANAGEMENT #####
 @api.post("/upload/gedcom")
 async def gedcom_upload(request: Request, file: UploadFile = File(...)):
     token = request.cookies.get("token")
@@ -59,8 +58,8 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)):
 
     try:
         ged2sql.run(file_path)
-        family_name = os.path.splitext(filename)[0]
-        auth_db.add_family_to_user(username, family_name)
+        tree_name = os.path.splitext(filename)[0]
+        auth_db.add_tree_to_user(username, tree_name)
     except sqlite3.DatabaseError as e:
         message = f'Database file is corrupted. Please delete/move it and try again. {e}'
         print(f"SQL.DatabaseError: {e}")
@@ -153,31 +152,26 @@ async def delete_session(request: Request):
     return {"status": "ok"}
 
 ##### TREE ROUTES #####
-@api.get('/tree/test')
-async def test_data():
-    data = [
-        {"id": 4, "Name": "Ben Harris", "gender": "male", "Birth Place": "Gateshead", "fid": 1, "mid": 2},
-        {"id": 1, "Name": "David Harris", "gender": "male", "pids": [2]},
-        {"id": 2, "Name": "Janice Harris", "gender": "female", "pids": [1]},
-        {"id": 3, "Name": "Alice Harris", "gender": "female", "Birth Place": "Nijmegen", "Death Place": "", "fid": 1, "mid": 2},
-    ]
-    return data
 
 @api.get('/tree')
 async def get_tree(request: Request, tree: str):
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
-    result = auth.validate_session(token)
-    if result == 401:
+    username = auth.validate_session(token)
+    if username == 401:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
-    try:
-        output = sql2json.run(tree)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-    if output == 404:
-        raise HTTPException(status_code=404, detail="Tree not found.")
-    return output
+
+    if auth.check_tree_match(username, tree):
+        try:
+            output = sql2json.run(tree)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+        if output == 404:
+            raise HTTPException(status_code=404, detail="Tree not found.")
+        return output
+    else:
+        raise HTTPException(status_code=401, detail="Tree not found.")
 
 @api.post('/tree/delete')
 async def delete_tree(request: Request, tree: str):
@@ -188,7 +182,7 @@ async def delete_tree(request: Request, tree: str):
     if result == 401:
         raise HTTPException(status_code=401, detail="You not authorised to complete this request")
     try:
-        auth_db.delete_user_family(result, tree)
+        auth_db.delete_user_tree(result, tree)
         tree_path = f"{DATA_DIR}/sql/{tree}.db"
         ged_path = f"{DATA_DIR}/gedcom/{tree}.ged"
         os.remove(tree_path)
@@ -205,8 +199,8 @@ async def get_trees(request: Request):
     result = auth.validate_session(token)
     if result == 401:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
-    families = auth_db.get_user_families(result)
-    return {"families": families}
+    trees = auth_db.get_user_trees(result)
+    return {"trees": trees}
 @api.get('/config/ttl')
 async def get_ttl():
     return {'ttl': cfg['session_ttl']}
