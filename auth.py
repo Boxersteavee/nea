@@ -13,7 +13,7 @@ user_dir = str(cfg['user_data_dir'])
 # Make DB
 os.makedirs(user_dir, exist_ok=True)
 db = Database(f'{cfg['user_data_dir']}/auth.db')
-db.create_user_db()
+db.create_auth_db()
 #db.clear_sessions() # TODO: Uncomment when done
 
 ##### USER MANAGEMENT #####

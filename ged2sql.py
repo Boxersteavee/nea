@@ -103,6 +103,6 @@ def run(gedcom_path):
     gedcom_name = os.path.basename(gedcom_path)
     db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
     db = Database(db_path)
-    db.create_fam_db()
+    db.create_family_db()
     add_data(elements, db)
     db.close()

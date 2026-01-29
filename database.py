@@ -13,7 +13,7 @@ class Database:
 
     ### ADDING TREE DATA ###
 
-    def create_fam_db(self):
+    def create_family_db(self):
         cursor = self.db_conn.cursor()
         # Create individuals table
         cursor.execute('''
@@ -21,7 +21,7 @@ class Database:
               id TEXT PRIMARY KEY,
               first_name TEXT,
               last_name TEXT,
-              sex TEXT,
+              gender TEXT,
               birth_date TEXT,
               birth_place TEXT,
               death_date TEXT,
@@ -56,17 +56,17 @@ class Database:
 
 
     # add_person_data takes information about an individual and adds them to the individuals table.
-    def add_person_data(self, id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation):
+    def add_person_data(self, id, first_name, last_name, gender, birth_date, birth_place, death_date, death_place, occupation):
         cursor = self.db_conn.cursor()
         cursor.execute('''
             INSERT OR IGNORE INTO individuals (
-                id, first_name, last_name, sex, birth_date, birth_place, death_date, death_place, occupation)
+                id, first_name, last_name, gender, birth_date, birth_place, death_date, death_place, occupation)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
             id,
             first_name,
             last_name,
-            sex,
+            gender,
             birth_date,
             birth_place,
             death_date,
@@ -138,7 +138,7 @@ class Database:
     ##### AUTH DATABASE FUNCTIONS #####
 
     # Create Users Table
-    def create_user_db(self):
+    def create_auth_db(self):
         cursor = self.db_conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
