@@ -204,3 +204,7 @@ async def get_trees(request: Request):
 @api.get('/config/ttl')
 async def get_ttl():
     return {'ttl': cfg['session_ttl']}
+
+@api.get('/config/name')
+async def get_name():
+    return {'name': cfg['tree_name']}

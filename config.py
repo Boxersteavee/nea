@@ -9,6 +9,7 @@ def setup():
     default['db_dir'] = '${user_data_dir}/sql'
     default['api_port'] = '8085'
     default['session_ttl'] = '2'
+    default['tree_name'] = 'SET_NAME'
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
 
