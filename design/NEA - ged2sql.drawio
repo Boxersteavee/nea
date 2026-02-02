@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.6">
   <diagram name="Page-1" id="rrnAVmChdUmhqFmyaeFy">
-    <mxGraphModel dx="961" dy="506" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1561" dy="823" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -40,7 +40,14 @@
         <mxCell id="CKpqjYQvATMWBrvphUOG-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Yes" vertex="1">
           <mxGeometry height="30" width="60" x="395" y="325" as="geometry" />
         </mxCell>
-        <mxCell id="CKpqjYQvATMWBrvphUOG-17" parent="1" style="whiteSpace=wrap;html=1;" value="Throw 400 error" vertex="1">
+        <mxCell id="8SkQS4y8ETNq_hDNspLt-3" edge="1" parent="1" source="CKpqjYQvATMWBrvphUOG-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="8SkQS4y8ETNq_hDNspLt-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="574" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CKpqjYQvATMWBrvphUOG-17" parent="1" style="whiteSpace=wrap;html=1;" value="Throw error: File invalid" vertex="1">
           <mxGeometry height="60" width="120" x="514" y="260" as="geometry" />
         </mxCell>
         <mxCell id="CKpqjYQvATMWBrvphUOG-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
@@ -52,8 +59,14 @@
         <mxCell id="CKpqjYQvATMWBrvphUOG-21" parent="1" style="whiteSpace=wrap;html=1;" value="Iterate through all families, add their information to database" vertex="1">
           <mxGeometry height="60" width="120" x="354" y="561" as="geometry" />
         </mxCell>
+        <mxCell id="8SkQS4y8ETNq_hDNspLt-2" edge="1" parent="1" source="CKpqjYQvATMWBrvphUOG-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="8SkQS4y8ETNq_hDNspLt-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="CKpqjYQvATMWBrvphUOG-23" parent="1" style="whiteSpace=wrap;html=1;" value="Add each child to linked table and add parents" vertex="1">
           <mxGeometry height="60" width="120" x="354" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="8SkQS4y8ETNq_hDNspLt-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Finished" vertex="1">
+          <mxGeometry height="80" width="120" x="353" y="760" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
