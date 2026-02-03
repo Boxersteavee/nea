@@ -2,8 +2,8 @@ import sqlite3
 
 class Database:
     def __init__(self, db_path):
-        self.db_path = db_path
-        self.db_conn = None
+        self.db_path = db_path # Set the path for the Database file to be opened/created.
+        # Initiate DB connection and enforce foreign keys.
         try:
             self.db_conn = sqlite3.connect(db_path)
             self.db_conn.execute("PRAGMA foreign_keys = ON") # Enforces Foreign Keys

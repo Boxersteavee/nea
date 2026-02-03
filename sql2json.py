@@ -13,7 +13,7 @@ import os
 
 cfg = get_cfg()
 
-def add_partners(db):
+def get_individuals_data(db):
     individuals = db.get_individuals()
     families = db.get_families()
 
@@ -63,7 +63,7 @@ def run(tree):
     if not os.path.isfile(db_path):
         return 404
     db = Database(db_path)
-    individuals = add_partners(db)
+    individuals = get_individuals_data(db)
     output = jsonify(individuals)
     return output
 
