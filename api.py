@@ -22,6 +22,8 @@ cfg = get_cfg()
 # Config-set variables
 UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
 DATA_DIR = f"{cfg['user_data_dir']}"
+SESSION_TTL = cfg['session_ttl']
+TREE_NAME = cfg['tree_name']
 
 # Hello world test on root API (check it works)
 @api.get("/")
@@ -99,6 +101,8 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)): # Get r
     return {"status": "ok"}
 
 ##### USER MANAGEMENT #####
+
+# Take user information and create a user, then create a session token to log them in.
 @api.post('/login/create')
 async def create_user(response: Response, username: str = Form(...), email: EmailStr = Form(...), password: str = Form(...)):
         # Send to auth to create the user, if the result is 200, then it was successful
@@ -125,6 +129,7 @@ async def create_user(response: Response, username: str = Form(...), email: Emai
             # and then an error is sent in the response (which is displayed on login page)
             raise HTTPException(status_code=500, detail="Error creating user")
 
+# Verify user details and create session token to log them in.
 @api.post('/login/verify')
 async def verify_user(response: Response, username: str = Form(...), password: str = Form(...)):
     # Check if username or password are not in the response, if so then respond with 401 saying no username or password.
@@ -148,6 +153,7 @@ async def verify_user(response: Response, username: str = Form(...), password: s
 
     return {"username": username}
 
+# Check the validity of the session, used on root page to decide whether to send user to /home
 @api.get('/checksession')
 async def check_session(request: Request):
     # Get session token from cookie of request
@@ -155,84 +161,116 @@ async def check_session(request: Request):
     # If there is no value to token, the user doesn't have a session cookie active, so they do not have a valid session token.
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    # Check session token validity, if it's invalid, None is returned so raise 401 error.
     result = auth.validate_session(token)
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid Session Token")
+    # If token is valid, return 200 OK.
     return {"status": "ok"}
 
+# Delete a user from database.
 @api.post('/login/delete')
 async def delete_user(request: Request):
+    # Get token, if doesn't exist, state one must be provided.
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    # Try to delete the user, which checks session. If session is not valid, return 401 and state Invalid Session Token
     result = auth.delete_user(token)
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid Session Token")
+    # If token is valid, revoke the session token after user is deleted, and return 200 OK.
     auth.revoke_session(token)
     return {"status": "ok"}
 
+# Removes session token to logout a user.
 @api.post('/login/logout')
 async def delete_session(request: Request):
+    # Get session token, if it's not provided, state one must be provided.
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    # Revoke the session token (invalidate it), then return 200 OK.
     auth.revoke_session(token)
     return {"status": "ok"}
 
 ##### TREE ROUTES #####
 
+# Gets the json for the given tree from SQL, if an error is encountered, return it.
 @api.get('/tree')
 async def get_tree(request: Request, tree: str):
+    # Get session token from cookie, if it does not exist then state there must be a valid session token.
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
+    # Check the token is valid, store in username variable. If validate_session returns None, it is invalid, so return 401 Unauthorised.
     username = auth.validate_session(token)
-    if username == 401:
+    if username is None:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
 
+    # Check the user has access to the tree they ask for.
     if auth.check_tree_match(username, tree):
+        # Try to convert the data from SQL to JSON, if there's an error return 500 with the error.
         try:
             output = sql2json.run(tree)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+        # If output does not find the file, return 404 Not Found
         if output == 404:
             raise HTTPException(status_code=404, detail="Tree not found.")
+        # Return the output from sql2json (JSON data)
         return output
+    # If auth.check_tree_match does not return True, state Tree not found.
     else:
-        raise HTTPException(status_code=401, detail="Tree not found.")
+        raise HTTPException(status_code=404, detail="Tree not found.")
 
+# Deletes the SQL and Gedcom file for the given tree, and removes it from the auth DB.
 @api.post('/tree/delete')
 async def delete_tree(request: Request, tree: str):
+    # Get session token from cookie, check it exists. If it doesn't state 401 Unauthorised, must provide token.
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
-    result = auth.validate_session(token)
-    if result is None:
+    # Check token is valid, if auth.validate_session returns None, it is not, so return 401 Unauthorised.
+    username = auth.validate_session(token)
+    if username is None:
         raise HTTPException(status_code=401, detail="You not authorised to complete this request")
+    # If the token is valid, call auth_db.delete_user_tree for the username and tree then delete the DB and gedcom file.
     try:
-        auth_db.delete_user_tree(result, tree)
+        auth_db.delete_user_tree(username, tree)
         tree_path = f"{DATA_DIR}/sql/{tree}.db"
         ged_path = f"{DATA_DIR}/gedcom/{tree}.ged"
         os.remove(tree_path)
         os.remove(ged_path)
+    # If there's an error with deleting, return 500 and state the error.
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+    # If everything works fine, return 200 OK.
     return {"status": "ok"}
 
+# Get the user's list of trees and return it as a JSON object list.
 @api.get('/trees')
 async def get_trees(request: Request):
+    # Get the session token from cookies, if it does not exist, return 401 and state it must be provided.
     token = request.cookies.get("token")
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid session token")
-    result = auth.validate_session(token)
-    if result is None:
+    # Check session is valid, if it is then the username is returned.
+    username = auth.validate_session(token)
+    # None is returned by auth.validate_session if the session is not valid, so return 401 Unauthorised.
+    if username is None:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request")
-    trees = auth_db.get_user_trees(result)
+    # Once the user is authorised, get get their trees from auth_db using the username from validate_session, returns a list.
+    trees = auth_db.get_user_trees(username)
+    # Return this list into a JSON object.
     return {"trees": trees}
+
+# Retrieve session_ttl, used when figuring out session expiry
 @api.get('/config/ttl')
 async def get_ttl():
-    return {'ttl': cfg['session_ttl']}
+    return {'ttl': SESSION_TTL}
 
+# Retrieve tree_name, used for the home page to display the tree name.
 @api.get('/config/name')
 async def get_name():
-    return {'name': cfg['tree_name']}
+    return {'name': TREE_NAME}

@@ -39,20 +39,31 @@ body {
 }
 
 /* Nav Bar Styles */
-.nav,
-ul {
-  list-style-type: none;
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #494949;
+  padding: 0;
+}
+
+.nav-left ul,
+.nav-right ul {
+  display: flex;
+  list-style: none;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  background-color; #494949;
+  gap: 0;
 }
 
-ul li {
-  float: left;
+.nav-left ul li,
+.nav-right ul li {
+  float: none;
 }
 
-ul li a {
+.nav-left ul li a,
+.nav-right ul li a,
+.nav-right ul li {
   display: block;
   color: white;
   text-align: center;
@@ -203,22 +214,21 @@ h1, h2, h3 {
   gap: 10px;
 }
 
-.tree-item {
-  display: block;
-  padding: 0;
-}
-
-.tree-item button {
-  width: 100%;
-  text-align: left;
-  margin: 0;
-}
-
 #trees-list p {
   color: #757575;
   text-align: center;
   padding: 20px;
 }
+
+#trees-list a {
+  align-self: center;
+  text-decoration: none;display: block;
+}
+
+#trees-list button {
+  width: fit-content;
+}
+
 
 /* Responsive styles */
 @media (max-width: 600px) {

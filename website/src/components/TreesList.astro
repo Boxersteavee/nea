@@ -33,7 +33,7 @@
             if (data.trees && data.trees.length > 0) {
                 treesList.innerHTML = data.trees
                     .map((tree: string) =>
-                        `<a href="/tree?tree=${encodeURIComponent(tree)}" style="text-decoration: none;">
+                        `<a href="/tree?tree=${encodeURIComponent(tree)}">
                             <button type="button">${tree}</button>
                         </a>`
                     )

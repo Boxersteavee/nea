@@ -1,6 +1,17 @@
+---
+import { getFamilyTitle } from '@components/FamilyTitle';
+const name = await getFamilyTitle(Astro.url.origin);
+---
 <div class="nav">
-    <ul>
-        <li><a href="/home">Home</a></li>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
+    <div class="nav-left">
+        <ul>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </div>
+    <div class="nav-right">
+        <ul>
+            <li>{name}</li>
+        </ul>
+    </div>
 </div>

@@ -6,7 +6,7 @@ def setup():
     default = config['DEFAULT']
     default['user_data_dir'] = 'user_data'
     default['gedcom_dir'] = '${user_data_dir}/gedcom'
-    default['db_dir'] = '${user_data_dir}/sql'
+    default['db_dir'] = '${user_data_dir}/trees'
     default['api_port'] = '8085'
     default['session_ttl'] = '2'
     default['tree_name'] = 'SET_NAME'
