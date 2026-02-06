@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import { getFamilyTitle } from '@components/FamilyTitle';
 const name = await getFamilyTitle(Astro.url.origin);
 ---
@@ -6,7 +7,7 @@ const name = await getFamilyTitle(Astro.url.origin);
 <link rel="stylesheet" href="/css/style.css">
 <div class="container">
     <h1 class="title">{name}</h1>
-    <img src="/images/logo.svg" alt="Logo" class="logo">
+    <Image src="/images/logo.svg" alt="Logo" class="logo" width={500} height={500} loading="eager"/>
     <div class="form">
         <button onclick="window.location.href='/login'">Login!</button>
         <button onclick="window.location.href='/register'">Register!</button>
