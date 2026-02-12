@@ -217,7 +217,7 @@ async def get_tree(request: Request, tree: str):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
         # If output does not find the file, return 404 Not Found
-        if output == 404:
+        if output == None:
             raise HTTPException(status_code=404, detail="Tree not found.")
         # Return the output from sql2json (JSON data)
         return output

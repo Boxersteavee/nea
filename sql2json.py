@@ -107,15 +107,19 @@ def remove_isolated_individuals(individuals):
 # This function is called by the API
 # to create the json response from a tree.
 def run(tree):
+    # Form the path to the database file by concatenating
+    # the db_dir from config, the provided tree name, and appending .db
     db_path = cfg['db_dir'] + "/" + tree + ".db"
+    # If the file does not exist, return None,
+    # which the API interprets as 404 not found
     if not os.path.isfile(db_path):
-        return 404
+        return None
+
+    # Initialise a connection to the DB,
+    # then run the above functions to collect
+    # and filter the data before returning the JSON list to the API.
     db = Database(db_path)
     individuals = get_individuals_data(db)
     jsonified = jsonify(individuals)
     output = remove_isolated_individuals(jsonified)
     return output
-
-if __name__ == "__main__":
-    output = run("HarrisWeb")
-    print(output)
