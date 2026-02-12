@@ -7,6 +7,7 @@ from database import Database
 from config import get_cfg
 
 cfg = get_cfg()
+DB_DIR = cfg['db_dir']
 
 def parse_file(gedcom_path):
     parser = Parser()
@@ -38,7 +39,9 @@ def add_data(elements, db):
 
                 name_data = element.get_name()
 
-                # Check if name_data contains anything. If it does, set the first_name and last_name from it, else leave it blank
+                # Check if name_data contains anything.
+                # If it does, set the first_name and last_name from it,
+                # else leave it blank
                 if name_data:
                     first_name, last_name = name_data
                 else:
@@ -54,7 +57,6 @@ def add_data(elements, db):
                 db.add_person_data(id, first_name, last_name, gender, birth_date, birth_place, death_date, death_place, occupation)
 
             elif isinstance(element, FamilyElement): # If the element is a Family
-                id = None
                 mother_id = None
                 father_id = None
                 marriage_date = ""
@@ -98,10 +100,9 @@ def add_data(elements, db):
 
 def run(gedcom_path):
     elements = parse_file(gedcom_path)
-    db_dir = cfg['db_dir']
-    os.makedirs(db_dir, exist_ok=True)
+    os.makedirs(DB_DIR, exist_ok=True)
     gedcom_name = os.path.basename(gedcom_path)
-    db_path = os.path.join(db_dir, gedcom_name.rsplit('.', 1)[0] + '.db')
+    db_path = os.path.join(DB_DIR, gedcom_name.rsplit('.', 1)[0] + '.db')
     db = Database(db_path)
     db.create_family_db()
     add_data(elements, db)

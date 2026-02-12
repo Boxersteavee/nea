@@ -91,8 +91,20 @@ class Database:
            ))
         self.db_conn.commit()
 
+    # Add a child to the family_children table
     def add_family_child(self, family_id, child_id):
         cursor = self.db_conn.cursor()
+
+        # If the family does not exist, skip silently
+        cursor.execute('SELECT 1 FROM families WHERE id = ?', (family_id,))
+        if not cursor.fetchone():
+            return
+
+        # If the child does not exist, skip silent
+        cursor.execute('SELECT 1 FROM individuals WHERE id = ?', (child_id,))
+        if not cursor.fetchone():
+            return
+
         cursor.execute('''
             INSERT OR IGNORE INTO family_children (family_id, child_id)
             VALUES (?, ?)

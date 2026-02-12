@@ -4,7 +4,7 @@
 </div>
 
 
-<script>
+<script lang="ts">
     const tree = new URLSearchParams(window.location.search).get('tree');
     const messageDiv = document.querySelector('.error-message');
 
@@ -29,7 +29,7 @@
             console.error('Error loading tree:', error);
             if (messageDiv) {
                 messageDiv.textContent = 'An error occurred';
-                messageDiv.text.color = 'red';
+                messageDiv.style.color = 'red';
             }
             return null;
         }
@@ -44,7 +44,6 @@
             if (!data) return;
 
             const container = document.getElementById("tree");
-
             let processedNodes = data.map(node => {
                 const id = Number(node.id);
                 if (isNaN(id) || id === 0) {
@@ -69,8 +68,9 @@
             console.log('Raw API data:', data);
 
             let previousNodeCount;
+            let currentNodeCount = processedNodes.length;
             do {
-                previousNodeCount = processedNodes.length;
+                previousNodeCount = currentNodeCount;
                 const currentValidIds = new Set(processedNodes.map(n => n.id));
 
                 processedNodes = processedNodes.filter(node => {
@@ -93,18 +93,21 @@
 
                     return isValid;
                 });
-            } while (processedNodes.length < previousNodeCount);
+                currentNodeCount = processedNodes.length;
+
+                console.log(`Loop iteration: previous=${previousNodeCount}, current=${currentNodeCount}`);
+            } while (currentNodeCount < previousNodeCount);
 
             const validatedData = processedNodes;
             const finalValidIds = new Set(validatedData.map(n => n.id));
 
 
-            const rootNode = validatedData.find(n => n.id === 1);
+
+            const rootNode = validatedData.length > 0 ? validatedData[0] : null;
             if (!rootNode) {
-                console.error('CRITICAL ERROR: Root node with ID 1 not found in validated data. Tree initialization aborted.');
-                messageDiv.textContent = 'Root Node not in data, cannot render tree.';
-                messageDiv.style.text = 'red'
-                messageDiv.style.text = 'red'
+                console.error('CRITICAL ERROR: No nodes found in validated data. Tree initialization aborted.');
+                messageDiv.textContent = 'No data available, cannot render tree.';
+                messageDiv.style.color = 'red';
                 return;
             }
 
@@ -128,6 +131,9 @@
                 });
             } catch (e) {
                 console.error('FamilyTree initialization error:', e);
+                messageDiv.textContent = 'Unknown Error Occured: Check Console for details.';
+                messageDiv.style.text = 'red';
+
             }
         };
         document.head.appendChild(script);

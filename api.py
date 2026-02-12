@@ -20,10 +20,11 @@ api = FastAPI(root_path="/api")
 cfg = get_cfg()
 
 # Config-set variables
-UPLOAD_FOLDER = f"{cfg['user_data_dir']}/gedcom"
-DATA_DIR = f"{cfg['user_data_dir']}"
+GEDCOM_DIR = f"{cfg['gedcom_dir']}"
 SESSION_TTL = cfg['session_ttl']
 TREE_NAME = cfg['tree_name']
+DB_DIR = cfg['db_dir']
+
 
 # Hello world test on root API (check it works)
 @api.get("/")
@@ -57,8 +58,8 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)): # Get r
     # Set the filename to remove invalid characters/spaces.
     # Create the UPLOAD_FOLDER if it doesn't exist
     filename = secure_filename(file.filename)
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    os.makedirs(GEDCOM_DIR, exist_ok=True)
+    file_path = os.path.join(GEDCOM_DIR, filename)
     # Save the uploaded file to file_path (UPLOAD_FOLDER joined with filename), report error if an error occurs.
     try:
         with open(file_path, "wb") as savefile:
@@ -80,22 +81,22 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)): # Get r
     except sqlite3.DatabaseError as e:
         message = f'Database file is corrupted. Please delete/move it and try again. {e}'
         print(f"SQL.DatabaseError: {e}")
-        os.remove(UPLOAD_FOLDER + "/" + filename)
+        os.remove(GEDCOM_DIR + "/" + filename)
         raise HTTPException(status_code=500, detail=message)
     except (parser.GedcomFormatViolationError, AttributeError) as e:
         message = f'Gedcom Parse failed. Is this a valid Gedcom file? {e}'
         print(f"GedcomFormatViolationError: {e}")
-        os.remove(UPLOAD_FOLDER + "/" + filename)
+        os.remove(GEDCOM_DIR + "/" + filename)
         raise HTTPException(status_code=500, detail=message)
     except UnicodeDecodeError as e:
         message = f'The file is not a readable format. Please re-generate the file or try a different file. {e}'
         print(f'UnicodeDecodeError: {e}')
-        os.remove(UPLOAD_FOLDER + "/" + filename)
+        os.remove(GEDCOM_DIR + "/" + filename)
         raise HTTPException(status_code=500, detail=message)
     except Exception as e:
         message = f'An unexpected error occurred: {str(e)}'
         print(f"Unexpected Error: {e}")
-        os.remove(UPLOAD_FOLDER + "/" + filename)
+        os.remove(GEDCOM_DIR + "/" + filename)
         raise HTTPException(status_code=500, detail=message)
     # If no errors are reported, return 200 ok.
     return {"status": "ok"}
@@ -238,8 +239,8 @@ async def delete_tree(request: Request, tree: str):
     # If the token is valid, call auth_db.delete_user_tree for the username and tree then delete the DB and gedcom file.
     try:
         auth_db.delete_user_tree(username, tree)
-        tree_path = f"{DATA_DIR}/sql/{tree}.db"
-        ged_path = f"{DATA_DIR}/gedcom/{tree}.ged"
+        tree_path = f"{DB_DIR}/{tree}.db"
+        ged_path = f"{GEDCOM_DIR}/{tree}.ged"
         os.remove(tree_path)
         os.remove(ged_path)
     # If there's an error with deleting, return 500 and state the error.
