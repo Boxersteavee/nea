@@ -114,7 +114,7 @@
             try {
                 const tree = new FamilyTree(container, {
                     mode: 'dark',
-                    layout: FamilyTree.layout.mixed,
+                    layout: FamilyTree.layout.normal,
                     nodes: validatedData,
                     template: 'hugo',
                     nodeBinding: {
@@ -126,14 +126,22 @@
                     },
                     nodeMouseClick: FamilyTree.action.details
                 });
+
+                tree.on('error', (sender, args) => {
+                    console.error('FamilyTree initialisation error:', args);
+                    if (messageDiv) {
+                        messageDiv.textContent = 'Unknown Error Occurred. Check Console for details.';
+                        messageDiv.style.color = 'red';
+                    }
+                });
+
                 tree.onInit(() => {
                     tree.center(1);
                 });
             } catch (e) {
-                console.error('FamilyTree initialization error:', e);
-                messageDiv.textContent = 'Unknown Error Occured: Check Console for details.';
-                messageDiv.style.text = 'red';
-
+                console.error('FamilyTree initialisation error:', e);
+                messageDiv.textContent = 'Unknown Error Occurred: Check Console for details.';
+                messageDiv.style.color = 'red';
             }
         };
         document.head.appendChild(script);
