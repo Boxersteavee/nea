@@ -41,9 +41,9 @@ async def gedcom_upload(request: Request, file: UploadFile = File(...)): # Get r
     # Check if cookie exists, if it doesn't respond with 401 (unauthorised) to say so.
     if not token:
         raise HTTPException(status_code=401, detail="You must provide a valid token in order to upload files")
-    # Check if session is valid, which returns a username if true, or 401 if not. TODO: (Need to block username from being set to = 401)
+    # Check if session is valid, which returns a username if true, or None if not
     username = auth.validate_session(token)
-    # If validate_session returns 401, then the token is either expired or invalid, so the user is not authorised.
+    # If validate_session returns None, then the token is either expired or invalid, so the user is not authorised.
     if username is None:
         raise HTTPException(status_code=401, detail="You are not authorised to complete this request.")
     # If a file is not provided, exit and say so.

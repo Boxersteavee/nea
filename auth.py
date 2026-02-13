@@ -15,7 +15,7 @@ USER_DIR = str(cfg['user_data_dir'])
 os.makedirs(USER_DIR, exist_ok=True)
 db = Database(f'{USER_DIR}/auth.db')
 db.create_auth_db()
-#db.clear_sessions() # Clear open sessions when program restarts, logging out all users. TODO: Uncomment when project completed
+db.clear_sessions() # Clear open sessions when program restarts, logging out all users.
 
 ##### USER MANAGEMENT #####
 # Take user details, hash the password, create a new user entry with details in DB.
@@ -45,7 +45,7 @@ def verify_user(username, password):
         return False
 
 # Take session token, validate it (which returns the username if valid), and then call db.delete_user on that username.
-# If the session is not valid, return 401.
+# If the session is not valid, return None.
 def delete_user(token):
     username = validate_session(token)
     if username is None:

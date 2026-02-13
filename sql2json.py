@@ -124,4 +124,5 @@ def run(tree):
     raw_individuals = get_individuals_data(db)
     jsonified = jsonify(raw_individuals)
     output = remove_isolated_individuals(jsonified)
+    db.close()
     return output

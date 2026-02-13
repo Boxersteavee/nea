@@ -133,6 +133,7 @@ class Database:
             families.append(i)
         return families
 
+    # Gets the parents of a given child by checking the family_children table and selecting their mother_id and father_id
     def get_individual_parents(self, child_id):
         cursor = self.db_conn.cursor()
         cursor.execute('''
@@ -152,6 +153,7 @@ class Database:
     # Create Users Table
     def create_auth_db(self):
         cursor = self.db_conn.cursor()
+        # Create the users table, storing username, email, pass_hash
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
@@ -159,13 +161,14 @@ class Database:
                 pass_hash TEXT
             )  
         ''')
-
+        # Create the trees table, which just stores all of the currently existing trees
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS trees (
                 tree_name TEXT PRIMARY KEY
             )
         ''')
 
+        # Create the user_trees table, which is a linked table that maps which trees a user has access to
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS user_trees (
                 username TEXT NOT NULL,
@@ -176,6 +179,7 @@ class Database:
             )
         ''')
 
+        # Create the sessions table, which tracks all current session tokens
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
@@ -224,8 +228,8 @@ class Database:
 
         return trees_list
 
-    # Adds a trees to a user, first by getting their list of trees (by calling get_user_trees)
-    # and then appending the given trees to that list, and commiting it to the db.
+    # Adds a trees to a user by inserting the tree into the trees table,
+    # and then inserting the tree into the user_trees table along with their username.
     def add_tree_to_user(self, username, tree_name):
         cursor = self.db_conn.cursor()
 
@@ -241,9 +245,7 @@ class Database:
 
         self.db_conn.commit()
 
-    # Deletes a user's trees by calling get_user_trees,
-    # then tries to remove the given trees from the list and commit it to the DB.
-    # If the given trees is not present, it silently continues.
+    # Deletes a tree from the user_trees table, unlinking the tree from the user.
     def delete_user_tree(self, username, tree_name):
         cursor = self.db_conn.cursor()
 
@@ -306,7 +308,7 @@ class Database:
         ''', (token,))
         return cursor.fetchone()
 
-    # Deletes a session, which is called when a user attempts to use an invalid session
+    # Deletes a session, which is called when a user attempts to use an invalid session, or logs out.
     def delete_session(self, token):
         cursor = self.db_conn.cursor()
         cursor.execute('''
