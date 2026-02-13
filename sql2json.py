@@ -1,22 +1,18 @@
-# Import database and create connection
-from types import new_class
-
-# for each row in individuals table:
-#    get id, conc(first_name,last_name), gender, birth_date, birth_place, death_date,
-#    death_place, occupation, mother_id and father_id
-# get data from families, assign partner IDs to who has one
-# children list is not needed because familytree.js works that out on its own based on MID and FID
-
 from database import Database
 from config import get_cfg
 import os
 
+# Get db_dir from the config and set it as global variable
 cfg = get_cfg()
+DB_DIR = cfg['db_dir']
 
+# Get the data for each individual from the database
 def get_individuals_data(db):
+    # Get individuals and families from DB into a list
     individuals = db.get_individuals()
     families = db.get_families()
 
+    # Build a map of all partners from the mother_id and father_id in each family
     partner_map = {}
     for family in families:
         family_id, father_id, mother_id = family
@@ -24,23 +20,30 @@ def get_individuals_data(db):
             partner_map[father_id] = mother_id
             partner_map[mother_id] = father_id
 
-    new_individuals = []
+    # Build a list of individuals
+    raw_individuals = []
+    # Iterate through individuals,
+    # get parents from DB function,
+    # get partners from the partner_map,
+    # then add their data to the list
     for individual in individuals:
         id = individual[0]
         mother_id, father_id = db.get_individual_parents(id)
         partner_id = partner_map.get(id)
-        individual_updated = individual + (mother_id, father_id, partner_id)
-        new_individuals.append(individual_updated)
+        raw_individuals.append(individual + (mother_id, father_id, partner_id))
+    return raw_individuals
 
-    return new_individuals
-
+# Convert the list into a json list
 def jsonify(individuals):
     jsonified = []
+    # Iterate through individuals to add data to the new list
     for i in individuals:
+        # Check if they have a partner, if not then set pids to be an empty list
         if i[11] is not None:
             pids = [i[11]]
         else:
             pids = []
+        # Add all of the data from the individual to a labeled section, then append it to the jsonified list
         entry = {
             "id": i[0],
             "Name": f"{i[1]} {i[2]}",
@@ -58,8 +61,7 @@ def jsonify(individuals):
     return jsonified
 
 # Sometimes, gedcom files contain people which have no connections.
-# These should not be displayed as they have no connections,
-# and cause clutter when rendered.
+# These should not be displayed as they have no connections, and cause clutter when rendered.
 # This function exists to filter them out.
 def remove_isolated_individuals(individuals):
     # Builds a list of parents
@@ -109,7 +111,7 @@ def remove_isolated_individuals(individuals):
 def run(tree):
     # Form the path to the database file by concatenating
     # the db_dir from config, the provided tree name, and appending .db
-    db_path = cfg['db_dir'] + "/" + tree + ".db"
+    db_path = DB_DIR + "/" + tree + ".db"
     # If the file does not exist, return None,
     # which the API interprets as 404 not found
     if not os.path.isfile(db_path):
@@ -119,7 +121,7 @@ def run(tree):
     # then run the above functions to collect
     # and filter the data before returning the JSON list to the API.
     db = Database(db_path)
-    individuals = get_individuals_data(db)
-    jsonified = jsonify(individuals)
+    raw_individuals = get_individuals_data(db)
+    jsonified = jsonify(raw_individuals)
     output = remove_isolated_individuals(jsonified)
     return output
