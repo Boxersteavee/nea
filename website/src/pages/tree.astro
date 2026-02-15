@@ -7,3 +7,12 @@ import DisplayTree from '@components/DisplayTree.astro';
     <link rel="stylesheet" href="/css/style.css">
     <DisplayTree />
 </Layout>
+
+<script>
+    // Update the title client-side based on URL params
+    const params = new URLSearchParams(window.location.search);
+    const tree = params.get('tree');
+    if (tree) {
+        document.title = tree;
+    }
+</script>
