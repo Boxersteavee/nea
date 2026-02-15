@@ -125,6 +125,8 @@ async def create_user(response: Response, username: str = Form(...), email: Emai
         elif result == 403:
             # If auth.create_user responds with 403, the user already exists. Respond with 403 saying so.
             raise HTTPException(status_code=403, detail="Username already exists")
+        elif result == 400:
+            raise HTTPException(status_code=400, detail="Password is not strong enough")
         else:
             # If auth.create_user responds with 500, some other error occured. This will be printed to the console,
             # and then an error is sent in the response (which is displayed on login page)

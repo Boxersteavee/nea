@@ -5,6 +5,7 @@ from config import get_cfg
 from datetime import datetime, timedelta, timezone
 import secrets
 import os
+import re
 
 # Get config dictionary and set constants used in auth.
 cfg = get_cfg()
@@ -21,6 +22,9 @@ db.clear_sessions() # Clear open sessions when program restarts, logging out all
 # Take user details, hash the password, create a new user entry with details in DB.
 # If there's any errors, respond with the error, else return true.
 def create_user(username, email, password):
+    # Check password with check_strength, if it returns false then return 400 to API.
+    if not check_strength(password):
+        return 400
     pass_hash = argon2.hash(password)
     try:
         db.new_user(username, email, pass_hash)
@@ -31,6 +35,25 @@ def create_user(username, email, password):
         return 500
     finally:
         return 200
+
+# Check the strength of a given password. If it is not strong enough, return false, else return true.
+def check_strength(password):
+    # Check length is more than 8 Characters
+    if len(password) < 8:
+        return False
+    # Check there is at least one uppercase letter
+    if not re.search(r'[A-Z]', password):
+        return False
+    # Check there is at least one lowercase letter
+    if not re.search(r'[a-z]', password):
+        return False
+    # Check there is at least one number
+    if not re.search(r'\d', password):
+        return False
+    # Check there is at least one special character
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False
+    return True
 
 # Take username and password, retrieve the hash from that username.
 # Check password against hash, if it's valid respond with 200(ok), else return 401 (unauthorised)
