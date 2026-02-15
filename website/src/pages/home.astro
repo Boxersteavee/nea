@@ -14,3 +14,22 @@ import TreesList from '@components/TreesList.astro';
         </div>
     </div>
 </Layout>
+
+<script>
+    // Checks if there is a valid session token, if there is, stay on page.
+    // If there is not, go to home page.
+    async function checkSession() {
+        // Call /api/checksession, which returns 200 if there is a valid session token
+        try {
+            const response = await fetch('/api/checksession', {
+                credentials: 'include'
+            });
+            if (response.status !== 200) {
+                window.location.href = '/';
+            }
+        } catch (error) {
+            // Session is valid, stay on page
+        }
+    }
+    checkSession();
+</script>

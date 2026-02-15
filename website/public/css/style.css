@@ -283,8 +283,11 @@ h1, h2, h3 {
 .tree-item a button,
 #trees-list a button {
     min-width: 200px;
+    max-width: 100%
     text-align: center;
     justify-content: center;
+    white-space: normal;
+    word-break: break-all;
 }
 
 .delete-btn:hover {
