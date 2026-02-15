@@ -33,12 +33,20 @@
             if (data.trees && data.trees.length > 0) {
                 treesList.innerHTML = data.trees
                     .map((tree: string) =>
-                        `<a href="/tree?tree=${encodeURIComponent(tree)}">
-                            <button type="button">${tree}</button>
-                        </a>`
+                        `
+                        <div class="tree-item">
+                            <a href="/tree?tree=${encodeURIComponent(tree)}">
+                                <button type="button">${tree}</button>
+                            </a>
+                            <button type="button" class="delete-btn" data-tree="${tree}">Delete</button>
+                        </div>
+                        `
                     )
                     .join('');
                 messageDiv.textContent = '';
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', handleDelete);
+                });
             } else {
                 treesList.innerHTML = '<p>No trees uploaded yet.</p>';
                 messageDiv.textContent = '';
@@ -48,6 +56,34 @@
             messageDiv.textContent = 'An error occurred';
             messageDiv.style.color = 'red';
             treesList.innerHTML = '';
+        }
+    }
+
+    async function handleDelete(event: Event) {
+        const button = event.target as HTMLButtonElement;
+        const tree = button.dataset.tree;
+
+        try {
+            const response = await fetch(`/api/tree/delete?tree=${encodeURIComponent(tree)}`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                messageDiv.textContent = data.detail || 'Failed to delete tree';
+                messageDiv.style.color = 'red';
+                return;
+            }
+
+            messageDiv.textContent = 'Tree Deleted Successfully';
+            messageDiv.style.color = 'green';
+
+            await loadTrees();
+        } catch (error) {
+            console.error('Error loading trees:', error);
+            messageDiv.textContent = `An error occurred while deleting "${tree}", see console for details.`;
+            messageDiv.style.color = 'red';
         }
     }
 

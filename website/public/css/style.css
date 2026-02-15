@@ -42,6 +42,7 @@ body {
 .nav {
   display: flex;
   justify-content: space-between;
+
   align-items: center;
   background-color: #494949;
   padding: 0;
@@ -221,8 +222,8 @@ h1, h2, h3 {
 }
 
 #trees-list a {
-  align-self: center;
-  text-decoration: none;display: block;
+  text-decoration: none;
+  flex: 0 1 auto;
 }
 
 #trees-list button {
@@ -264,6 +265,32 @@ h1, h2, h3 {
     margin: 20px auto;
     padding: 20px;
     box-sizing: border-box;
+}
+
+.tree-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    width: 100%;
+}
+
+.tree-item button {
+    margin: 0;
+}
+
+.tree-item a button,
+#trees-list a button {
+    min-width: 200px;
+    text-align: center;
+    justify-content: center;
+}
+
+.delete-btn:hover {
+    border-color: #8b0000;
+    background-color: #494949;
+    color: #8b0000;
 }
 
 #tree {
