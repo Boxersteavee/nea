@@ -92,4 +92,8 @@
     } else {
         loadTrees();
     }
+
+    document.addEventListener('tree-uploaded', () => {
+        loadTrees();
+    });
 </script>
