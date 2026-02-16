@@ -172,7 +172,7 @@ async def check_session(request: Request):
     return {"status": "ok"}
 
 # Delete a user from database.
-@api.post('/login/delete')
+@api.delete('/login/delete')
 async def delete_user(request: Request):
     # Get token, if doesn't exist, state one must be provided.
     token = request.cookies.get("token")
@@ -187,7 +187,7 @@ async def delete_user(request: Request):
     return {"status": "ok"}
 
 # Removes session token to logout a user.
-@api.post('/login/logout')
+@api.delete('/login/logout')
 async def delete_session(request: Request):
     # Get session token, if it's not provided, state one must be provided.
     token = request.cookies.get("token")
@@ -228,7 +228,7 @@ async def get_tree(request: Request, tree: str):
         raise HTTPException(status_code=404, detail="Tree not found.")
 
 # Deletes the SQL and Gedcom file for the given tree, and removes it from the auth DB.
-@api.post('/tree/delete')
+@api.delete('/tree/delete')
 async def delete_tree(request: Request, tree: str):
     # Get session token from cookie, check it exists. If it doesn't state 401 Unauthorised, must provide token.
     token = request.cookies.get("token")
