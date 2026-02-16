@@ -1,6 +1,6 @@
 ---
 import { getFamilyTitle } from '@components/FamilyTitle';
-const name = await getFamilyTitle(Astro.url.origin);
+const title = await getFamilyTitle(Astro.url.origin);
 ---
 <div class="nav">
     <div class="nav-left">
@@ -11,7 +11,7 @@ const name = await getFamilyTitle(Astro.url.origin);
     </div>
     <div class="nav-right">
         <ul>
-            <li>{name}</li>
+            <li>{title}</li>
         </ul>
     </div>
 </div>
