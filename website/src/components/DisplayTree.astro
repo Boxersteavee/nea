@@ -5,26 +5,38 @@
 
 
 <script lang="ts">
-    const tree = new URLSearchParams(window.location.search).get('tree');
-    const messageDiv = document.querySelector('.error-message');
+    // AI Models from GitHub Copilot were used to assist with the logic and syntax of this section.
 
+    // Define tree variable as the value from the search parameter (?tree={value} in URL)
+    const tree = new URLSearchParams(window.location.search).get('tree');
+    // Define messageDiv as the error-message box div in the HTML above.
+    const messageDiv = document.querySelector<HTMLDivElement>('.error-message');
+
+    // This function loads the data about the tree from the API.
     async function loadTreeData() {
+        // Try statement to catch any errors that occur during the retrieval
         try {
+            // Get data from the API, using the tree variable as the tree to get data for
             const response = await fetch(`/api/tree?tree=${tree}`, {
                 credentials: 'include'
             });
 
+            // If the response is anything but 200 OK, print the error to the console,
+            // and print the error to messageDiv if it exists in red text.
             if (!response.ok) {
-                const errorData = await response.json();
+                const error = await response.json();
+                console.log(error);
                 if (messageDiv) {
-                    messageDiv.textContent = errorData.detail || 'Failed to retrieve data';
+                    messageDiv.textContent = error.detail || 'Failed to retrieve data';
                     messageDiv.style.color = 'red';
                 }
                 return null;
             }
 
+            // If there's no errors, set data to the response and return data.
             const data = await response.json();
             return data;
+        // If any other errors occur, print the error to the console and print a message in the messageDiv
         } catch (error) {
             console.error('Error loading tree:', error);
             if (messageDiv) {
@@ -35,21 +47,42 @@
         }
     }
 
+    // This function loads the FamilyTreeJS library from Balkan, tells it how to process the data and gives the data to it.
     async function loadLibraryAndInit() {
+        // define script as a new element and set the source to the URL for balkan's library.
         const script = document.createElement('script');
         script.src = 'https://cdn.balkan.app/familytree.js';
-        script.onerror = () => console.error('Failed to load FamilyTree library');
+        // Set an onerror watch which prints en error to the console and to the messageDiv if the library fails to load
+        script.onerror = () => {
+            console.error('Failed to load FamilyTree library');
+            messageDiv.textContent = 'Failed to load FamilyTree library';
+            messageDiv.style.color = 'red';
+            };
+
+        // Codeblock to initialise the library and send the data to it.
         script.onload = async () => {
+            // Get the data from loadTreeData, exit if there is no data (if an error caused it to be set to null)
             const data = await loadTreeData();
             if (!data) return;
+            // Print raw data to console log for debugging
+            console.log('Raw API data:', data);
 
+            // Define container as the 'tree' element, which is the box the tree can be in.
             const container = document.getElementById("tree");
+
+            // Create a variable which is a map of all processedNodes from the API data.
+            // The block of code in this section processes each node
+            // and makes their data usable to the library.
             let processedNodes = data.map(node => {
+                // Define the id of the node as a local const.
+                // Check if it is NaN or 0, if so then skip
                 const id = Number(node.id);
                 if (isNaN(id) || id === 0) {
                     console.error(`Skipping node due to invalid primary ID: ${node.id}`, node);
                     return null;
                 }
+                // set the values from the API into the new processedNodes map,
+                // setting Null to undefined, sets PIDs to integers and filters invalid IDs
                 return {
                     id: id,
                     Name: node.Name,
@@ -63,19 +96,27 @@
                     fid: node.fid ? Number(node.fid) : undefined,
                     pids: node.pids ? node.pids.map(pid => Number(pid)).filter(pid => !isNaN(pid) && pid !== 0) : []
                 };
+            // Filter the nodes with invalid pids out of the map.
             }).filter(node => node !== null);
 
-            console.log('Raw API data:', data);
-
+            // This next section iteratively passes through the map and removes invalid nodes.
+            // This must be done iteratively as one node being removed can make another invalid.
+            // If any are removed, another pass is made, if not then it can proceed.
+            // This is tracked with previousNodeCount and currentNodeCount,
+            // once both are the same after a pass it does not need to run again.
             let previousNodeCount;
             let currentNodeCount = processedNodes.length;
             do {
+                // Start by setting the previousNodeCount to the currentNodeCount.
                 previousNodeCount = currentNodeCount;
+                // get the currentValidIds from the processedNodes map.
                 const currentValidIds = new Set(processedNodes.map(n => n.id));
 
+                // Filters through all existing nodes again, removing nodes with broken connections
                 processedNodes = processedNodes.filter(node => {
                     let isValid = true;
 
+                    // Check if mother_id is undefined
                     if (node.mid !== undefined && (!currentValidIds.has(node.mid) || isNaN(node.mid) || node.mid === 0)) {
                         console.warn(`Node ${node.id} removed: invalid mother ID ${node.mid}.`);
                         isValid = false;
@@ -90,7 +131,6 @@
                         if (node.pids.length !== originalPidsLength) {
                         }
                     }
-
                     return isValid;
                 });
                 currentNodeCount = processedNodes.length;
