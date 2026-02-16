@@ -1,9 +1,105 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="29.4.0">
   <diagram name="Page-1" id="S1gi3oOUBhnp-enyeso3">
-    <mxGraphModel>
+    <mxGraphModel dx="1010" dy="658" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-3" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Register Form Loaded" vertex="1">
+          <mxGeometry height="80" width="120" x="354" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-5" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-2" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="User enters username, email&lt;div&gt;and password&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-7" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-4" parent="1" style="whiteSpace=wrap;html=1;" value="Check if the user already exists" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-9" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-32" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="1aiDf-kbUsrvz8cr2-3n-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="User&lt;br&gt;Exists?" vertex="1">
+          <mxGeometry height="80" width="80" x="374" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-31" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="1aiDf-kbUsrvz8cr2-3n-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-8" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Return User&lt;br&gt;exists message" vertex="1">
+          <mxGeometry height="60" width="120" x="514" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-13" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-10" parent="1" style="whiteSpace=wrap;html=1;" value="Hash user password" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-17" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-16" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-12" parent="1" style="whiteSpace=wrap;html=1;" value="Store username, pass_hash and email in db" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-19" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-18" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-16" parent="1" style="whiteSpace=wrap;html=1;" value="Generate a session token" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-21" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="1aiDf-kbUsrvz8cr2-3n-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-18" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Send the user&lt;br&gt;to home page" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-20" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="80" width="120" x="354" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-33" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="1aiDf-kbUsrvz8cr2-3n-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Check password is secure" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-25" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-34" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1aiDf-kbUsrvz8cr2-3n-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-23" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Is secure?" vertex="1">
+          <mxGeometry height="80" width="80" x="374" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-29" edge="1" parent="1" source="1aiDf-kbUsrvz8cr2-3n-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="1aiDf-kbUsrvz8cr2-3n-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-24" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Returns&lt;br&gt;password&lt;br&gt;not secure&lt;br&gt;message" vertex="1">
+          <mxGeometry height="60" width="120" x="514" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-28" parent="1" style="whiteSpace=wrap;html=1;" value="Reload form" vertex="1">
+          <mxGeometry height="60" width="120" x="660" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-35" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Yes" vertex="1">
+          <mxGeometry height="30" width="60" x="440" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="30" width="60" x="440" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-37" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Yes" vertex="1">
+          <mxGeometry height="30" width="60" x="410" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="1aiDf-kbUsrvz8cr2-3n-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="30" width="60" x="410" y="430" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
