@@ -70,82 +70,9 @@
             // Define container as the 'tree' element, which is the box the tree can be in.
             const container = document.getElementById("tree");
 
-            // Create a variable which is a map of all processedNodes from the API data.
-            // The block of code in this section processes each node
-            // and makes their data usable to the library.
-            let processedNodes = data.map(node => {
-                // Define the id of the node as a local const.
-                // Check if it is NaN or 0, if so then skip
-                const id = Number(node.id);
-                if (isNaN(id) || id === 0) {
-                    console.error(`Skipping node due to invalid primary ID: ${node.id}`, node);
-                    return null;
-                }
-                // set the values from the API into the new processedNodes map,
-                // setting Null to undefined, sets PIDs to integers and filters invalid IDs
-                return {
-                    id: id,
-                    Name: node.Name,
-                    gender: node.gender,
-                    'Birth Date': node['Birth Date'],
-                    'Birth Place': node['Birth Place'],
-                    'Death Date': node['Death Date'],
-                    'Death Place': node['Death Place'],
-                    Occupation: node.Occupation,
-                    mid: node.mid ? Number(node.mid) : undefined,
-                    fid: node.fid ? Number(node.fid) : undefined,
-                    pids: node.pids ? node.pids.map(pid => Number(pid)).filter(pid => !isNaN(pid) && pid !== 0) : []
-                };
-            // Filter the nodes with invalid pids out of the map.
-            }).filter(node => node !== null);
-
-            // This next section iteratively passes through the map and removes invalid nodes.
-            // This must be done iteratively as one node being removed can make another invalid.
-            // If any are removed, another pass is made, if not then it can proceed.
-            // This is tracked with previousNodeCount and currentNodeCount,
-            // once both are the same after a pass it does not need to run again.
-            let previousNodeCount;
-            let currentNodeCount = processedNodes.length;
-            do {
-                // Start by setting the previousNodeCount to the currentNodeCount.
-                previousNodeCount = currentNodeCount;
-                // get the currentValidIds from the processedNodes map.
-                const currentValidIds = new Set(processedNodes.map(n => n.id));
-
-                // Filters through all existing nodes again, removing nodes with broken connections
-                processedNodes = processedNodes.filter(node => {
-                    let isValid = true;
-
-                    // Check if mother_id is undefined
-                    if (node.mid !== undefined && (!currentValidIds.has(node.mid) || isNaN(node.mid) || node.mid === 0)) {
-                        console.warn(`Node ${node.id} removed: invalid mother ID ${node.mid}.`);
-                        isValid = false;
-                    }
-                    if (node.fid !== undefined && (!currentValidIds.has(node.fid) || isNaN(node.fid) || node.fid === 0)) {
-                        console.warn(`Node ${node.id} removed: invalid father ID ${node.fid}.`);
-                        isValid = false;
-                    }
-                    if (node.pids && node.pids.length > 0) {
-                        const originalPidsLength = node.pids.length;
-                        node.pids = node.pids.filter(pid => currentValidIds.has(pid) && !isNaN(pid) && pid !== 0);
-                        if (node.pids.length !== originalPidsLength) {
-                        }
-                    }
-                    return isValid;
-                });
-                currentNodeCount = processedNodes.length;
-
-                console.log(`Loop iteration: previous=${previousNodeCount}, current=${currentNodeCount}`);
-            } while (currentNodeCount < previousNodeCount);
-
-            const validatedData = processedNodes;
-            const finalValidIds = new Set(validatedData.map(n => n.id));
-
-
-
-            const rootNode = validatedData.length > 0 ? validatedData[0] : null;
+            const rootNode = data.length > 0 ? data[0] : null;
             if (!rootNode) {
-                console.error('CRITICAL ERROR: No nodes found in validated data. Tree initialization aborted.');
+                console.error('CRITICAL ERROR: No nodes found in data. Tree initialization aborted.');
                 messageDiv.textContent = 'No data available, cannot render tree.';
                 messageDiv.style.color = 'red';
                 return;
@@ -155,7 +82,7 @@
                 const tree = new FamilyTree(container, {
                     mode: 'dark',
                     layout: FamilyTree.layout.normal,
-                    nodes: validatedData,
+                    nodes: data,
                     template: 'hugo',
                     nodeBinding: {
                         field_0: 'Name',
