@@ -33,7 +33,7 @@ def create_user(username, email, password):
     except Exception as e:
         print(f'Unknown Error Occurred when creating user: {e}')
         return 500
-    finally:
+    else:
         return 200
 
 # Check the strength of a given password. If it is not strong enough, return false, else return true.

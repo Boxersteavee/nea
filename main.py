@@ -20,6 +20,7 @@ def main():
         cwd="website"
     )
     os.makedirs(USER_DIR, exist_ok=True)
+    print(f"Using Directory: {USER_DIR}")
     # Run the API on localhost on the configured configured port
     uvicorn.run("api:api", host=HOST_IP, port=PORT, reload=True)
 
