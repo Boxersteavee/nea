@@ -70,6 +70,8 @@
             // Define container as the 'tree' element, which is the box the tree can be in.
             const container = document.getElementById("tree");
 
+            // Checks to make sure there are nodes in the data.
+            // If the data contains no nodes, return with an error in console and messageDiv.
             const rootNode = data.length > 0 ? data[0] : null;
             if (!rootNode) {
                 console.error('CRITICAL ERROR: No nodes found in data. Tree initialization aborted.');
@@ -78,22 +80,26 @@
                 return;
             }
 
+            // Try to render tree, if there's an error, send an error message in console and in the messageDiv
             try {
+                // Layout for the tree
                 const tree = new FamilyTree(container, {
-                    mode: 'dark',
-                    layout: FamilyTree.layout.normal,
-                    nodes: data,
-                    template: 'hugo',
+                    mode: 'dark', // dark-mode in the box to match site theme
+                    layout: FamilyTree.layout.normal, // normal layout which links nodes correctly.
+                    nodes: data, // using nodes from {data}
+                    template: 'hugo', // using Balkan's 'hugo' template
                     nodeBinding: {
                         field_0: 'Name',
                         field_1: 'Birth Date'
-                    },
+                    }, // These fields are the ones displayed on the node's card
                     editForm: {
                         readOnly: true
-                    },
-                    nodeMouseClick: FamilyTree.action.details
+                    }, // Disable the ability to edit nodes (API does not have this feature, it would only be local)
+                    nodeMouseClick: FamilyTree.action.details // This shows the other info about the individual when their node is clicked
                 });
 
+                // A failed attempt to catch errors when rendering the tree,
+                // should display in messageDiv and console, but does not.
                 tree.on('error', (sender, args) => {
                     console.error('FamilyTree initialisation error:', args);
                     if (messageDiv) {
@@ -101,10 +107,13 @@
                         messageDiv.style.color = 'red';
                     }
                 });
-
+                // Initialise the tree, centering on node 1
                 tree.onInit(() => {
                     tree.center(1);
                 });
+
+            // For the try statement this whole block is in, another attempt to catch errors,
+            // printing to console and messageDiv. Works for some errors.
             } catch (e) {
                 console.error('FamilyTree initialisation error:', e);
                 messageDiv.textContent = 'Unknown Error Occurred: Check Console for details.';
@@ -113,7 +122,7 @@
         };
         document.head.appendChild(script);
     }
-
+    // This if statement exists to ensure the tree does not try to render before the library has been loaded.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', loadLibraryAndInit);
     } else {

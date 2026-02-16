@@ -19,29 +19,44 @@
     </form>
 </div>
 <script>
-    const form = document.querySelector('.form') as HTMLFormElement | null;
-    const messageDiv = document.querySelector('.error-message') as HTMLElement | null;
+    // Define variables form the form and error-message classes in the HTML
+    const form = document.querySelector<HTMLFormElement>('.form');
+    const messageDiv = document.querySelector<HTMLDivElement>('.error-message');
 
+    // This section adds an Event Listener for the submit button on the form,
+    // when it gets that, it takes the form data
+    // and sends it to the API to verify the user's details.
+
+    // The if statement exists to ensure the script doesn't run before
+    // the HTML elements for the form and message box have rendered.
     if (form && messageDiv) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const formData = new FormData(form);
 
+            // Try to send a POST request to /api/login/verify with the formData
             try {
                 const response = await fetch('/api/login/create', {
                     method: 'POST',
                     body: formData,
                 });
 
+                // Store the response in a 'data' variable
                 const data = await response.json();
 
+                // If the response was 200 OK, take the user to the home page.
                 if (response.ok) {
                     window.location.href = '/home';
+                // If the response was not 200 OK, return the message from the API
+                //(or return 'Login Failed if the API did not respond)
+                // into the message box, with the text in red.
                 } else {
                     messageDiv.textContent = data.detail || 'Registration Failed';
                     messageDiv.style.color = 'red';
                 }
+            // If there was any error with the request that was not handled,
+            // print 'An error occurred' into the message box and print the error to the console.
             } catch (error) {
                 messageDiv.textContent = 'An error occurred'
                 console.log(error);

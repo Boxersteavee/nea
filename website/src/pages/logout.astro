@@ -1,4 +1,7 @@
 <script>
+    // call logout to API in DELETE request,
+    // which deletes the session token and logs the user out,
+    // then send to the user to root
     await fetch('/api/login/logout', {
         method: 'DELETE',
         credentials: 'include'

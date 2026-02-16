@@ -12,45 +12,59 @@
 </div>
 
 <script>
-    const form = document.getElementById('upload-form');
-    const messageDiv = document.getElementById('upload-error-message');
+    // define variables from the form and messageDiv in the HTML above
+    const form = document.querySelector<HTMLFormElement>('#upload-form');
+    const messageDiv = document.querySelector<HTMLDivElement>('#upload-error-message');
 
     if (form && messageDiv) {
+        // EventListener for the submit button of the form
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // Take the file input from the form and save it into the {file} const.
             const fileInput = document.getElementById('upload');
             const file = fileInput?.files?.[0];
 
+            // If there's not a file uploaded, state one must be provided in messageDiv
             if (!file) {
                 messageDiv.textContent = "You must select a file"
                 messageDiv.style.color = "red";
                 return;
             }
 
+            // Get the formData of the file, storing it in formData
             const formData = new FormData(form);
             formData.append('file', file);
 
             messageDiv.textContent = "Processing..."
             messageDiv.style.color = "green";
 
+            // Try statement to catch errors when uploading
             try {
+                // Send a POST request to the upload API with the file
                 const response = await fetch('/api/upload/gedcom', {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'
                 });
 
+                // Store the response in {data}
                 const data = await response.json();
 
+                // if the response is 200 OK, set a success message to messageDiv (which is already green)
+                // set and then call the custom event for tree-uploaded,
+                // which calls TreesList to reload the trees list
                 if (response.ok) {
                     messageDiv.textContent = 'Upload Successful'
                     const event = new CustomEvent('tree-uploaded');
                     document.dispatchEvent(event);
+                // If the response is anything other than 200 OK,
+                // set messageDiv to the error message and set the text to red.
                 } else {
                     messageDiv.textContent = data.detail || 'Upload Failed'
                     messageDiv.style.color = 'red';
                 }
+            // Catch any error and print it to the console and messageDiv
             } catch (error) {
                 messageDiv.textContent = 'An error occurred'
                 console.log(error);

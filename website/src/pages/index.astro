@@ -15,6 +15,7 @@ const name = await getFamilyTitle(Astro.url.origin);
 </div>
 
 <script>
+    // Call API to check if the session is valid, if the response is 200 OK, redirect to /home
     async function checkSession() {
         try {
             const response = await fetch('/api/checksession', {

@@ -9,17 +9,23 @@
 </div>
 
 <script>
+    // Define variables from divs in the HTML above
     const treesList = document.getElementById('trees-list');
     const messageDiv = document.getElementById('trees-error-message');
 
+    // This function loads the trees from the API and displays them in the trees'list div
     async function loadTrees() {
         if (!treesList || !messageDiv) return;
 
+        // Try statement to catch any unhandled errors
         try {
+            // Get list of trees from the API
             const response = await fetch('/api/trees', {
                 credentials: 'include'
             });
 
+            // If the response from the API is not 200 OK, store the response in data and display the detail in the messageDiv.
+            // Also sets the list to be empty.
             if (!response.ok) {
                 const data = await response.json();
                 messageDiv.textContent = data.detail || 'Failed to load trees';
@@ -28,8 +34,11 @@
                 return;
             }
 
+            // Store the response from the api into 'data'
             const data = await response.json();
 
+            // If there are trees in the JSON object, create a map with each tree,
+            // then create HTML elements for each tree including a link to the tree and a delete button.
             if (data.trees && data.trees.length > 0) {
                 treesList.innerHTML = data.trees
                     .map((tree: string) =>
@@ -43,14 +52,20 @@
                         `
                     )
                     .join('');
+                // set messageDiv to empty since there's no message to display, this will hide it.
                 messageDiv.textContent = '';
+
+                // Add an EventListener for when the delete button is pressed, to be used by deleteTree later.
                 document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', handleDelete);
+                    btn.addEventListener('click', deleteTree);
                 });
+            // If there are no trees in the json object, add a message stating none are uploaded yet and
+            // hide the messageDiv by setting its content to empty
             } else {
                 treesList.innerHTML = '<p>No trees uploaded yet.</p>';
                 messageDiv.textContent = '';
             }
+        // If there's an error loading the trees, print it to the console and add an error to the messageDiv.
         } catch (error) {
             console.error('Error loading trees:', error);
             messageDiv.textContent = 'An error occurred';
@@ -59,27 +74,33 @@
         }
     }
 
-    async function handleDelete(event: Event) {
+    // Function to handle the deletion of a tree, when a user clicks the delete button.
+    async function deleteTree(event: Event) {
+        // Set variables for the button (the target from the event that called this function)
+        // and the tree (given from the button's data in the map)
         const button = event.target as HTMLButtonElement;
         const tree = button.dataset.tree;
 
+        // try statement to catch errors
         try {
+            // Send DELETE request to the API with a search parameter for the tree
             const response = await fetch(`/api/tree/delete?tree=${encodeURIComponent(tree)}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
-
+            // If the response is not 200 OK, set the response to {data}, then set messageDiv to a
             if (!response.ok) {
                 const data = await response.json();
                 messageDiv.textContent = data.detail || 'Failed to delete tree';
                 messageDiv.style.color = 'red';
                 return;
             }
-
+            // If there's no errors, set a success message in messageDiv
             messageDiv.textContent = 'Tree Deleted Successfully';
             messageDiv.style.color = 'green';
-
+            // Reload the trees after deletion.
             await loadTrees();
+        // If there's an error deleting a tree, print the error message to the console and a message in messageDiv
         } catch (error) {
             console.error('Error loading trees:', error);
             messageDiv.textContent = `An error occurred while deleting "${tree}", see console for details.`;
@@ -87,12 +108,14 @@
         }
     }
 
+    // Don't load the trees until the page has loaded fully
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', loadTrees);
     } else {
         loadTrees();
     }
 
+    // EventListener to reload the trees list when a tree is uploaded
     document.addEventListener('tree-uploaded', () => {
         loadTrees();
     });
